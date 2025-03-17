@@ -4,17 +4,19 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
 using Sensitive;
+using BasicCommands;
 
 namespace BotAPI {
-
     public class Bot {
     private static ITelegramBotClient botClient;
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     public static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
+        Commands commands = new Commands(botClient);
         try {
             switch (update.Type) {
                 case UpdateType.Message: {
                     Console.WriteLine($"There is a new message from {update?.Message?.From?.Username}!\nIt goes, \'{update?.Message?.Text}\'");
+                    commands.sendMsg(update.Message.Chat.Id, $"You\'ve said: \n\'{update?.Message?.Text}\'");
                     return;
                 }
             }
