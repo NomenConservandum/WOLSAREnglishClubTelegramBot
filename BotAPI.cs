@@ -1,11 +1,12 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
+// using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
 using Sensitive;
 using BasicCommands;
+using BDBC;
 
 namespace BotAPI {
     public class Bot {
@@ -13,20 +14,61 @@ namespace BotAPI {
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
     private static Commands commands;
+    private static PseudoDB DB = new PseudoDB();
+
     public static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
         try {
-            switch (update.Type) {
+            String usernameTemp = "", msgTextTemp = "";
+            long chatIdTemp = 0;
+            
+            switch (update.Type) { // to get the username, text of the message and the chat ID
                 case UpdateType.Message: {
-                    Console.WriteLine($"There is a new message from {update?.Message?.From?.Username}!\nIt goes, \'{update?.Message?.Text}\'");
-                    commands.sendInlineURL(
-                        update.Message.Chat.Id,
-                        "I\'d like to invite you to our chat!\nThe link is here:", 
-                        "Your link :D",
-                        "No, thank you",
-                        inviteURL
-                    );
-                    
+                    usernameTemp = update.Message.From.Username;
+                    msgTextTemp = update.Message.Text;
+                    chatIdTemp = update.Message.Chat.Id;
+                    break;
+                }
+                case UpdateType.CallbackQuery: {
+                    usernameTemp = update.CallbackQuery.From.Username;
+                    msgTextTemp = update.CallbackQuery.Data;
+                    chatIdTemp = update.CallbackQuery.Message.Chat.Id;
+                    break;
+                }
+            }
+            Console.WriteLine($"There is a new message from {usernameTemp}!\nIt goes, \'{msgTextTemp}\'");
+            
+            if (DB.findByUsername(usernameTemp).isValid()) { // The user is already in the DB
+                switch (update.Type) {
+                    case UpdateType.Message: {
+                        commands.sendInlineURL(
+                            chatIdTemp,
+                            "I\'d like to invite you to our chat!\nThe link is here:", 
+                            "Your link :D",
+                            "No, thank you",
+                            inviteURL
+                        );
+                        break;
+                    }
+                    case UpdateType.CallbackQuery: {
+                        if(msgTextTemp == "NEGATIVE") // delete the inline message.
+                            commands.sendMsg(
+                                chatIdTemp,
+                                "Oww, whyyy?"
+                            );
+                        break;
+                    }
+                }
+            } else { // The user has met the bot for the first time
+                if(DB.Add(new Users(usernameTemp)))
                     return;
+                switch(update.Type) {
+                    default: {
+                        commands.sendMsg(
+                            chatIdTemp,
+                            "You're a newbie! :D"
+                        );
+                        break;
+                    };
                 }
             }
         }
