@@ -48,7 +48,7 @@ namespace BotAPI {
             }
             if (DB.findByUsername(usernameTemp).getStatus() == statuses.newcomer) { // The user is already in the DB
                 switch (update.Type) {
-                    case UpdateType.Message: {
+                    case UpdateType.Message: { // Ask them if they want to register and if so, what role would they like to have: a minister, a participant
                         commands.sendInlineURL(
                             chatIdTemp,
                             "I\'d like to invite you to our chat!\nThe link is here:", 
@@ -68,10 +68,10 @@ namespace BotAPI {
                     }
                 }
             } else if (DB.findByUsername(usernameTemp).getStatus() == statuses.NONE) { // The user has met the bot for the first time
-                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, 0, 0)))
+                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
                     return;
                 switch(update.Type) {
-                    default: {
+                    default: { // greet the user and suggest them to go through a regestration process
                         commands.sendMsg(
                             chatIdTemp,
                             "You're a newbie! :D"

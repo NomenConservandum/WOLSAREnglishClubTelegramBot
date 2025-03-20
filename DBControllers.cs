@@ -1,6 +1,14 @@
 using Microsoft.Data.Sqlite;
 
-namespace DBController { // Blank DataBase Class
+namespace DBController { // Proper DataBase Class
+    public enum proficiencyLevels {
+        zero,
+        A1,
+        A2,
+        B1,
+        B2,
+        C1
+    }
     public enum statuses {
         NONE,           // The user who has met the bot for the first time. They are welcomed and are suggested to register.
         newcomer,       // Pre-registration status
@@ -11,7 +19,7 @@ namespace DBController { // Blank DataBase Class
         done                // if the customer has the 'done' status they will be asked if they want to terminate the service
     }
     public enum roles {
-        none,           // no role: newcomer
+        NONE,           // no role: newcomer
         representative, // ministers
         mms,            // ministers
         host,           // ministers
@@ -21,6 +29,7 @@ namespace DBController { // Blank DataBase Class
         long chatID, groupChatID;
         statuses status;
         roles role;
+        proficiencyLevels languageProficiency;
         String username;
         public long getChatID() {
             return chatID;
@@ -46,12 +55,19 @@ namespace DBController { // Blank DataBase Class
         public void setRole(roles newRole) {
             role = newRole;
         }
-        public Users(long chatID, String username, statuses status, roles role, long groupChatID) {
+        public proficiencyLevels getLanguageProficiencyLevel() {
+            return languageProficiency;
+        }
+        public void setLanguageProficiencyLevel(proficiencyLevels newLevel) {
+            languageProficiency = newLevel;
+        }
+        public Users(long chatID, String username, statuses status, roles role, long groupChatID, proficiencyLevels languageProficiency) {
             this.chatID = chatID;
             this.username = username;
             this.status = status;
             this.role = role;
             this.groupChatID = groupChatID;
+            this.languageProficiency = languageProficiency;
         }
         // Checks if the user is valid. Not valid user means the user was not found.
         public bool isValid() {
@@ -95,7 +111,8 @@ namespace DBController { // Blank DataBase Class
                         username TEXT NOT NULL,
                         status INTEGER NOT NULL,
                         role INTEGER NOT NULL,
-                        groupchatid INTEGER
+                        groupchatid INTEGER,
+                        languageProficiency INTEGER
                     );
                 ";
                 command.ExecuteNonQuery();
@@ -107,7 +124,7 @@ namespace DBController { // Blank DataBase Class
         public DBApi() {}
 
         public Users findByUsername(String username) {
-            Users result = new Users(0, "NONE", 0, 0, 0);
+            Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0, proficiencyLevels.zero);
             Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
 
             // open the connection
@@ -122,8 +139,9 @@ namespace DBController { // Blank DataBase Class
                         statuses Status = (statuses)reader.GetInt32(2);
                         roles Role = (roles)reader.GetInt32(3);
                         long GroupChatID = reader.GetInt64(4);
+                        proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
                         if (Username == username) {
-                            result = new Users(ChatID, Username, Status, Role, GroupChatID);
+                            result = new Users(ChatID, Username, Status, Role, GroupChatID, LanguageProficiency);
                             Console.WriteLine($"SUCCESS: THE USER {username} HAS BEEN FOUND");
                             break;
                         }
@@ -146,7 +164,7 @@ namespace DBController { // Blank DataBase Class
                 command.CommandText = 
                 @$"
                     INSERT INTO Users
-                    VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()});
+                    VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()}, {(int)user.getLanguageProficiencyLevel()});
                 ";
                 connection.Open();
                 command.ExecuteNonQuery();
