@@ -46,5 +46,13 @@ namespace BasicCommands {
                
                 return;
         }
+        public void showText(CallbackQuery callbackQuery, String msg) {
+            botClient.AnswerCallbackQuery(callbackQuery.Id, msg);
+            return;
+        }
+        public void showTextFullscreen(CallbackQuery callbackQuery, String msg) {
+            botClient.AnswerCallbackQuery(callbackQuery.Id, msg, showAlert: true);
+            return;
+        }
     }
 }

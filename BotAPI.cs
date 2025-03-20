@@ -6,7 +6,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
 using Sensitive;
 using BasicCommands;
-using BDBC;
+using DBController;
 
 namespace BotAPI {
     public class Bot {
@@ -14,7 +14,7 @@ namespace BotAPI {
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
     private static Commands commands;
-    private static PseudoDB DB = new PseudoDB();
+    private static DBApi DB = new DBApi();
 
     public static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
         try {
@@ -34,10 +34,19 @@ namespace BotAPI {
                     chatIdTemp = update.CallbackQuery.Message.Chat.Id;
                     break;
                 }
-            }
+                default: {
+                    usernameTemp = "NONE";
+                    msgTextTemp = "";
+                    chatIdTemp = 0;
+                    break;
+                    }
+                }
             Console.WriteLine($"There is a new message from {usernameTemp}!\nIt goes, \'{msgTextTemp}\'");
-            
-            if (DB.findByUsername(usernameTemp).isValid()) { // The user is already in the DB
+            if (usernameTemp == "NONE" && chatIdTemp == 0) { // could not parse the username
+                Console.WriteLine($"ERROR: THE MESSAGE COULD NOT BE PARSED");
+                return;
+            }
+            if (DB.findByUsername(usernameTemp).getStatus() == statuses.newcomer) { // The user is already in the DB
                 switch (update.Type) {
                     case UpdateType.Message: {
                         commands.sendInlineURL(
@@ -50,7 +59,7 @@ namespace BotAPI {
                         break;
                     }
                     case UpdateType.CallbackQuery: {
-                        if(msgTextTemp == "NEGATIVE") // delete the inline message.
+                        if(msgTextTemp == "NEGATIVE")
                             commands.sendMsg(
                                 chatIdTemp,
                                 "Oww, whyyy?"
@@ -58,8 +67,8 @@ namespace BotAPI {
                         break;
                     }
                 }
-            } else { // The user has met the bot for the first time
-                if(DB.Add(new Users(usernameTemp)))
+            } else if (DB.findByUsername(usernameTemp).getStatus() == statuses.NONE) { // The user has met the bot for the first time
+                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, 0, 0)))
                     return;
                 switch(update.Type) {
                     default: {
@@ -101,7 +110,8 @@ namespace BotAPI {
         inviteURL = sensitive.getURL();
         botClient = new TelegramBotClient(sensitive.getToken());
         commands = new Commands(botClient);
-        
+        DB = new DBApi(sensitive.getDBName());
+
         receiverOptions.AllowedUpdates = new[] {
             UpdateType.Message,
             UpdateType.CallbackQuery,

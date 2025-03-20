@@ -2,3 +2,4 @@ sensitive.cs
 bin/
 obj/
 *.sln
+MainDataBase.db
