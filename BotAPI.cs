@@ -1,7 +1,7 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-// using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
 using Sensitive;
@@ -40,7 +40,7 @@ namespace BotAPI {
                     chatIdTemp = 0;
                     break;
                     }
-                }
+            }
             Console.WriteLine($"There is a new message from {usernameTemp}!\nIt goes, \'{msgTextTemp}\'");
             if (usernameTemp == "NONE" && chatIdTemp == 0) { // could not parse the username
                 Console.WriteLine($"ERROR: THE MESSAGE COULD NOT BE PARSED");
@@ -59,25 +59,75 @@ namespace BotAPI {
                         break;
                     }
                     case UpdateType.CallbackQuery: {
-                        if(msgTextTemp == "NEGATIVE")
-                            commands.sendMsg(
-                                chatIdTemp,
-                                "Oww, whyyy?"
-                            );
+                        switch (msgTextTemp) {
+                            case "NEGATIVE": {
+                                commands.sendMsg(
+                                    chatIdTemp,
+                                    "Oww, whyyy?"
+                                );
+                                break;
+                            };
+                            default: {
+                                commands.sendMsg(
+                                    chatIdTemp,
+                                    "Error: unknown command (it may be not available any more)"
+                                );
+                                break;
+                            }
+                        }
                         break;
                     }
                 }
-            } else if (DB.findByUsername(usernameTemp).getStatus() == statuses.NONE) { // The user has met the bot for the first time
-                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
-                    return;
+            } else if (DB.findByUsername(usernameTemp).isValid() == false) { // The user has met the bot for the first time
                 switch(update.Type) {
-                    default: { // greet the user and suggest them to go through a regestration process
-                        commands.sendMsg(
+                    case UpdateType.Message: { // greet the user and suggest them to go through a regestration process
+                        if (update.Message.Text != "/start") {
+                            commands.sendMsg(
+                                chatIdTemp,
+                                "Если что, команда: /start"
+                            );
+                            break;
+                        }
+                        // Bot sends the InLine keyboard with the choice
+                        var inlineKeyboard = new InlineKeyboardMarkup(
+                            new List<InlineKeyboardButton[]>() {
+                                new InlineKeyboardButton[] {
+                                InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT"),
+                                InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER"),
+                                },
+                                new InlineKeyboardButton[] {
+                                InlineKeyboardButton.WithCallbackData("Узнать больше о клубе", "INFO"), 
+                                },
+                            }
+                        );
+                        commands.sendMsgInline(
                             chatIdTemp,
-                            "You're a newbie! :D"
+                            "Я хочу...",
+                            inlineKeyboard
                         );
                         break;
                     };
+                    case UpdateType.CallbackQuery: {
+                        switch (msgTextTemp) {
+                            case "PARTICIPANT": {
+                                Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
+                                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
+                                    return;
+                                break;
+                            };
+                            case "MINISTER": {
+                                Console.WriteLine($"The user {usernameTemp} wants to register as a minister!");
+                                if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
+                                    return;
+                                break;
+                            };
+                            case "INFO": {
+                                Console.WriteLine($"The user {usernameTemp} wants to know more about the club!");
+                                break;
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }
