@@ -78,6 +78,7 @@ namespace DBController { // Proper DataBase Class
     }
     public class DBApi {
         private String DBName = "";
+        private Boolean DEBUG = true;
         public DBApi(String DBName) {
             this.DBName = DBName;
             // open the connection
@@ -100,9 +101,9 @@ namespace DBController { // Proper DataBase Class
                     throw new System.ArgumentException("Data.ConnectionState must be open");
                 }
                 if (result) {
-                    Console.WriteLine($"SUCCESS: THE DATABASE AND ITS TABLES ALREADY EXIST");
+                    if (DEBUG) Console.WriteLine($"RESULT: THE DATABASE AND ITS TABLES ALREADY EXIST");
                 } else {
-                    Console.WriteLine($"IN PROCESS: THE DATABASE AND ITS TABLES ARE BEING CREATED");
+                    if (DEBUG) Console.WriteLine($"IN PROCESS: THE DATABASE AND ITS TABLES ARE BEING CREATED");
                 var command = connection.CreateCommand();
                 command.CommandText =
                 @"
@@ -116,7 +117,7 @@ namespace DBController { // Proper DataBase Class
                     );
                 ";
                 command.ExecuteNonQuery();
-                Console.WriteLine($"SUCCESS: THE DATABASE AND ITS TABLES HAVE BEEN CREATED");
+                if (DEBUG) Console.WriteLine($"RESULT: THE DATABASE AND ITS TABLES HAVE BEEN CREATED");
                 }
             }
            
@@ -125,7 +126,7 @@ namespace DBController { // Proper DataBase Class
 
         public Users findByUsername(String username) {
             Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0, proficiencyLevels.zero);
-            Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
+            if (DEBUG) Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
 
             // open the connection
             using (var connection = new SqliteConnection("Data Source=" + DBName + ".db")) {
@@ -142,22 +143,25 @@ namespace DBController { // Proper DataBase Class
                         proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
                         if (Username == username) {
                             result = new Users(ChatID, Username, Status, Role, GroupChatID, LanguageProficiency);
-                            Console.WriteLine($"SUCCESS: THE USER {username} HAS BEEN FOUND");
+                            if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
                             break;
                         }
                     }
                 }
             }
-            if (!result.isValid())
-                Console.WriteLine($"FAILURE: THE USER {username} HAS NOT BEEN FOUND");
+            if (!result.isValid() && DEBUG)
+                Console.WriteLine($"RESULT: THE USER {username} HAS NOT BEEN FOUND");
             return result;
         }
         public bool Add(Users user) {
-            Console.WriteLine($"IN PROCESS: ADDING THE USER {user.getUsername()} TO THE DB");
+            if (DEBUG) Console.WriteLine($"IN PROCESS: ADDING THE USER {user.getUsername()} TO THE DB");
+            DEBUG = false;
             if (findByUsername(user.getUsername()).isValid()) {
-                Console.WriteLine($"FAILURE: THE USER {user.getUsername()} IS ALREADY IN THE DB");
+                DEBUG = true;
+                if (DEBUG) Console.WriteLine($"RESULT: THE USER {user.getUsername()} IS ALREADY IN THE DB");
                 return true; // there is already such a user!
             }
+            DEBUG = true;
             bool result = false; // no error yet
             using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
                 var command = connection.CreateCommand();
@@ -170,8 +174,8 @@ namespace DBController { // Proper DataBase Class
                 command.ExecuteNonQuery();
                 // possibly here some errors may occur, if they do, we switch result to true.
             }
-            if (!result)
-                Console.WriteLine($"SUCCESS: THE USER {user.getUsername()} HAS BEEN ADDED TO THE DB");
+            if (!result && DEBUG)
+                Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN ADDED TO THE DB");
             return result;
         }
     }
