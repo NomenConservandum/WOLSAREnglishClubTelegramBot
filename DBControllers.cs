@@ -178,5 +178,20 @@ namespace DBController { // Proper DataBase Class
                 Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN ADDED TO THE DB");
             return result;
         }
+        // the username cannot be changed, so we just overwrite the other fields
+        public bool Update(Users user) {
+            if (DEBUG) Console.WriteLine($"IN PROCESS: UPDATING THE USER {user.getUsername()}");
+            Boolean result = false; // no errors yet
+            // open the connection
+            using (var connection = new SqliteConnection("Data Source=" + DBName + ".db")) {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = $"UPDATE Users SET status = {(int)user.getStatus()}, role = {(int)user.getRole()}, groupchatid = {user.getGroupChatID()}, languageProficiency = {(int)user.getLanguageProficiencyLevel()} WHERE chatid = {user.getChatID()}";
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+            if (DEBUG && !result) Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN UPDATED SUCCESSFULLY");
+            return result;
+        }
     }
 }

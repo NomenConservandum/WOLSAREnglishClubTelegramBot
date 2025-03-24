@@ -58,7 +58,7 @@ namespace BotModes {
         ) {
             switch(update.Type) {
                 case UpdateType.Message: { // greet the user and suggest them to go through a regestration process
-                    if (update.Message.Text != "/start") {
+                    if (msgTextTemp != "/start") {
                         commands.sendMsg(
                             chatIdTemp,
                             "Если что, команда: /start"
@@ -69,39 +69,63 @@ namespace BotModes {
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT"),
-                            InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER"),
+                            InlineKeyboardButton.WithCallbackData("Начать регистрацию!", "REGISTRATION"),
                             },
                             new InlineKeyboardButton[] {
                             InlineKeyboardButton.WithCallbackData("Узнать больше о клубе", "INFO"), 
                             },
                         }
                     );
+
                     commands.sendMsgInline(
                         chatIdTemp,
                         "Я хочу...",
                         inlineKeyboard
                     );
+                    var dataTransferAgreenment = new InlineKeyboardMarkup(
+                        new List<InlineKeyboardButton[]>() {
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("Соглашение на обработку персональных данных", "dataTransferAgreenment"), 
+                            },
+                        }
+                    );
+                    commands.sendMsgInline(
+                        chatIdTemp,
+                        "Нажимая на 'Начать регистрацию!' Вы соглашаетесь на обработку персональных данных:",
+                        dataTransferAgreenment
+                    );
+                    
+                    
                     break;
                 };
                 case UpdateType.CallbackQuery: {
                     switch (msgTextTemp) {
-                        case "PARTICIPANT": {
-                            Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
-                            // The user is added to the DB
-                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
-                                return;
+                        case "REGISTRATION": {
+                            var inlineKeyboard = new InlineKeyboardMarkup(
+                                new List<InlineKeyboardButton[]>() {
+                                    new InlineKeyboardButton[] {
+                                    InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT"),                  
+                                    InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER"),
+                                    },
+                                    new InlineKeyboardButton[] {
+                                    InlineKeyboardButton.WithCallbackData("Узнать больше о клубе", "INFO"), 
+                                    },
+                                }
+                            );
+                            // send a message with the inline keyboard
+                            commands.sendMsgInline(
+                                chatIdTemp,
+                                "Я хочу...",
+                                inlineKeyboard
+                            );
+                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero))) // The user is added to the DB
+                                return; // what? The user is already in the DB? Then they shouldn't get here.
+                            // switches the mode by adding the user to the DB
                             break;
-                        };
-                        case "MINISTER": {
-                            Console.WriteLine($"The user {usernameTemp} wants to register as a minister!");
-                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero)))
-                            // The user is added to the DB
-                                return;
-                            break;
-                        };
+                        }
                         case "INFO": {
                             Console.WriteLine($"The user {usernameTemp} wants to know more about the club!");
+                            // send them a message with the choices.
                             break;
                         }
                         default: {
@@ -116,6 +140,34 @@ namespace BotModes {
                 }
             }
         }
+
         // other modes
+        
+        // Pre-registration mode. Used when the user has a role 'newcomer.'
+        public void newcomerMode(
+            Update update,
+            String usernameTemp, String msgTextTemp, long chatIdTemp,
+            Commands commands, DBApi DB
+        ) {
+            // Bot sends the InLine keyboard with the choice
+            switch (msgTextTemp) {
+                case "PARTICIPANT": {
+                    Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0, proficiencyLevels.zero))) // The users status is changed
+                        return;
+                    // this mode won't be used anymore
+                    // sends commands that will be available only in the next mode
+                    break;
+                };
+                case "MINISTER": {
+                    Console.WriteLine($"The user {usernameTemp} wants to register as a minister!");
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocMinister, roles.NONE, 0, proficiencyLevels.zero))) // The users status is changed
+                        return;
+                    // this mode won't be used anymore
+                    // sends commands that will be available only in the next mode
+                    break;
+                };
+            }
+        }
     }
 }

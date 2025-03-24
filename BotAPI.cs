@@ -14,7 +14,7 @@ namespace BotAPI {
     private static ITelegramBotClient botClient;
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
-    private static Commands commands;
+    private static Commands commands = new Commands();
     private static DBApi DB = new DBApi();
     private static Modes modes = new Modes();
     public static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
@@ -32,13 +32,27 @@ namespace BotAPI {
         }
         try {
             Console.WriteLine($"There is a new message from {usernameTemp}!\nIt goes, \'{msgTextTemp}\'");
-            if (DB.findByUsername(usernameTemp).getStatus() == statuses.newcomer) { // The user is already in the DB
-                modes.FillerMode(update,
-                        usernameTemp, msgTextTemp, chatIdTemp,
-                        commands, DB, inviteURL);
-            } else if (DB.findByUsername(usernameTemp).isValid() == false) { // The user has met the bot for the first time
+            Users foundUser = DB.findByUsername(usernameTemp);
+            if (foundUser.getStatus() == statuses.newcomer) { // The user is already in the DB
+                modes.newcomerMode(
+                    update,
+                    usernameTemp, msgTextTemp, chatIdTemp,
+                    commands, DB
+                );
+            } else if (
+                    foundUser.getStatus() == statuses.inregprocCustomer ||
+                    foundUser.getStatus() == statuses.inregprocMinister
+            ) {
+                // Nothing here yet
+                Console.WriteLine($"{usernameTemp} is registering!");
+            }
+            else if (foundUser.isValid() == false) { // The user has met the bot for the first time
                 // The 'first encounter' mode
-                modes.FirstEncounter(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
+                modes.FirstEncounter(
+                    update,
+                    usernameTemp, msgTextTemp, chatIdTemp,
+                    commands, DB
+                );
             }
         }
         catch (Exception ex) {

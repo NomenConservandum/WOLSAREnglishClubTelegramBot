@@ -8,6 +8,7 @@ using Telegram.Bot.Exceptions;
 namespace BasicCommands {
     public class Commands {
         private ITelegramBotClient botClient;
+        public Commands() {}
         public Commands(ITelegramBotClient botClient) {
             this.botClient = botClient;
         }
