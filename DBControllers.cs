@@ -155,13 +155,13 @@ namespace DBController { // Proper DataBase Class
         }
         public bool Add(Users user) {
             if (DEBUG) Console.WriteLine($"IN PROCESS: ADDING THE USER {user.getUsername()} TO THE DB");
-            DEBUG = false;
+            DEBUG = !DEBUG;
             if (findByUsername(user.getUsername()).isValid()) {
-                DEBUG = true;
+                DEBUG = !DEBUG;
                 if (DEBUG) Console.WriteLine($"RESULT: THE USER {user.getUsername()} IS ALREADY IN THE DB");
                 return true; // there is already such a user!
             }
-            DEBUG = true;
+            DEBUG = !DEBUG;
             bool result = false; // no error yet
             using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
                 var command = connection.CreateCommand();

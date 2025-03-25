@@ -39,12 +39,12 @@ namespace BotAPI {
                     usernameTemp, msgTextTemp, chatIdTemp,
                     commands, DB
                 );
-            } else if (
-                    foundUser.getStatus() == statuses.inregprocCustomer ||
-                    foundUser.getStatus() == statuses.inregprocMinister
-            ) {
+            } else if (foundUser.getStatus() == statuses.inregprocCustomer) {
                 // Nothing here yet
-                Console.WriteLine($"{usernameTemp} is registering!");
+                Console.WriteLine($"{usernameTemp} is registering as a participant!");
+            } else if (foundUser.getStatus() == statuses.inregprocMinister) {
+                // Nothing here yet
+                Console.WriteLine($"{usernameTemp} is registering as a minister!");
             }
             else if (foundUser.isValid() == false) { // The user has met the bot for the first time
                 // The 'first encounter' mode

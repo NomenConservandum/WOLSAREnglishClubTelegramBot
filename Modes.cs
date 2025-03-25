@@ -65,6 +65,7 @@ namespace BotModes {
                         );
                         break;
                     }
+                    Variables sensitive = new Variables();
                     // Bot sends the InLine keyboard with the choice
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -72,7 +73,7 @@ namespace BotModes {
                             InlineKeyboardButton.WithCallbackData("Начать регистрацию!", "REGISTRATION"),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Узнать больше о клубе", "INFO"), 
+                            InlineKeyboardButton.WithUrl("Узнать больше о клубе (FAQ)", sensitive.getFAQLink()), 
                             },
                         }
                     );
@@ -85,13 +86,13 @@ namespace BotModes {
                     var dataTransferAgreenment = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Соглашение на обработку персональных данных", "dataTransferAgreenment"), 
+                            InlineKeyboardButton.WithUrl("Согласие на обработку персональных данных", sensitive.getDTALink()),
                             },
                         }
                     );
                     commands.sendMsgInline(
                         chatIdTemp,
-                        "Нажимая на 'Начать регистрацию!' Вы соглашаетесь на обработку персональных данных:",
+                        "Нажимая на 'Начать регистрацию!', Вы соглашаетесь на обработку персональных данных (текст согласия доступен ниже)",
                         dataTransferAgreenment
                     );
                     
@@ -107,9 +108,6 @@ namespace BotModes {
                                     InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT"),                  
                                     InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER"),
                                     },
-                                    new InlineKeyboardButton[] {
-                                    InlineKeyboardButton.WithCallbackData("Узнать больше о клубе", "INFO"), 
-                                    },
                                 }
                             );
                             // send a message with the inline keyboard
@@ -121,11 +119,6 @@ namespace BotModes {
                             if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero))) // The user is added to the DB
                                 return; // what? The user is already in the DB? Then they shouldn't get here.
                             // switches the mode by adding the user to the DB
-                            break;
-                        }
-                        case "INFO": {
-                            Console.WriteLine($"The user {usernameTemp} wants to know more about the club!");
-                            // send them a message with the choices.
                             break;
                         }
                         default: {
@@ -165,6 +158,13 @@ namespace BotModes {
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode
+                    break;
+                };
+                default: {
+                    commands.sendMsg(
+                        chatIdTemp,
+                        "Error: unknown command (it may be not available any more)"
+                    );
                     break;
                 };
             }
