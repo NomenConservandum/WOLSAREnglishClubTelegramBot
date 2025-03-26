@@ -81,9 +81,12 @@ namespace DBController { // Proper DataBase Class
     public class DBApi {
         private String DBName = "";
         private Boolean DEBUG = true;
+	List<Users> list = new List<Users>() {}; // TOBEDELETED
         public DBApi(String DBName) {
             this.DBName = DBName;
-            // open the connection
+	    // while I'm on termux I cannot use a proper DB. TOBEDELETED
+            /*
+	    // open the connection
             using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
                 connection.Open();
                 bool result = false; // doesn't exist
@@ -121,14 +124,22 @@ namespace DBController { // Proper DataBase Class
                 if (DEBUG) Console.WriteLine($"RESULT: THE DATABASE AND ITS TABLES HAVE BEEN CREATED");
                 }
             }
-           
+	    */
         }
+	
         public DBApi() {}
 
         public Users findByUsername(String username) {
             Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0);
             if (DEBUG) Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
-
+	    // TOBEDELETED
+	    foreach (var user in list) {
+		if (user.getUsername() == username) {
+                    if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
+		    return user;
+		}
+	    }
+	    /*
             // open the connection
             using (var connection = new SqliteConnection("Data Source=" + DBName + ".db")) {
                 connection.Open();
@@ -150,6 +161,7 @@ namespace DBController { // Proper DataBase Class
                     }
                 }
             }
+	    */
             if (!result.isValid() && DEBUG)
                 Console.WriteLine($"RESULT: THE USER {username} HAS NOT BEEN FOUND");
             return result;
@@ -164,7 +176,10 @@ namespace DBController { // Proper DataBase Class
             }
             DEBUG = !DEBUG;
             bool result = false; // no error yet
-            using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
+	    list.Add(user);
+            // TOBEDELETED
+	    /*
+	    using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
                 var command = connection.CreateCommand();
                 command.CommandText = 
                 @$"
@@ -176,6 +191,7 @@ namespace DBController { // Proper DataBase Class
                 command.ExecuteNonQuery();
                 // possibly here some errors may occur, if they do, we switch result to true.
             }
+	    */
             if (!result && DEBUG)
                 Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN ADDED TO THE DB");
             return result;
@@ -184,7 +200,13 @@ namespace DBController { // Proper DataBase Class
         public bool Update(Users user) {
             if (DEBUG) Console.WriteLine($"IN PROCESS: UPDATING THE USER {user.getUsername()}");
             Boolean result = false; // no errors yet
-            // open the connection
+	    for (int i = 0; i < list.Count; ++i) {
+		if (list[i].getUsername() == user.getUsername())
+		    list[i] = user;
+	    }
+	    // TOBEDELETED
+	    /*
+	    // open the connection
             using (var connection = new SqliteConnection("Data Source=" + DBName + ".db")) {
                 connection.Open();
                 var command = connection.CreateCommand();
@@ -192,6 +214,7 @@ namespace DBController { // Proper DataBase Class
                 connection.Open();
                 command.ExecuteNonQuery();
             }
+	    */
             if (DEBUG && !result) Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN UPDATED SUCCESSFULLY");
             return result;
         }
