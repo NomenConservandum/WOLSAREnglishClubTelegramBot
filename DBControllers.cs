@@ -25,11 +25,20 @@ namespace DBController { // Proper DataBase Class
         host,           // ministers
         customer,       // once assigned this role the customer automatically gets the 'inQueue' status
     }
+    public class fillOutForm {
+        proficiencyLevels languageProficiency;
+        public fillOutForm() {}
+        public proficiencyLevels getLanguageProficiencyLevel() {
+            return languageProficiency;
+        }
+        public void setLanguageProficiencyLevel(proficiencyLevels newLevel) {
+            languageProficiency = newLevel;
+        }
+    }
     public class Users {
         long chatID, groupChatID;
         statuses status;
         roles role;
-        proficiencyLevels languageProficiency;
         String username;
         public long getChatID() {
             return chatID;
@@ -55,19 +64,12 @@ namespace DBController { // Proper DataBase Class
         public void setRole(roles newRole) {
             role = newRole;
         }
-        public proficiencyLevels getLanguageProficiencyLevel() {
-            return languageProficiency;
-        }
-        public void setLanguageProficiencyLevel(proficiencyLevels newLevel) {
-            languageProficiency = newLevel;
-        }
-        public Users(long chatID, String username, statuses status, roles role, long groupChatID, proficiencyLevels languageProficiency) {
+        public Users(long chatID, String username, statuses status, roles role, long groupChatID) {
             this.chatID = chatID;
             this.username = username;
             this.status = status;
             this.role = role;
             this.groupChatID = groupChatID;
-            this.languageProficiency = languageProficiency;
         }
         // Checks if the user is valid. Not valid user means the user was not found.
         public bool isValid() {
@@ -113,7 +115,6 @@ namespace DBController { // Proper DataBase Class
                         status INTEGER NOT NULL,
                         role INTEGER NOT NULL,
                         groupchatid INTEGER,
-                        languageProficiency INTEGER
                     );
                 ";
                 command.ExecuteNonQuery();
@@ -125,7 +126,7 @@ namespace DBController { // Proper DataBase Class
         public DBApi() {}
 
         public Users findByUsername(String username) {
-            Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0, proficiencyLevels.zero);
+            Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0);
             if (DEBUG) Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
 
             // open the connection
@@ -140,7 +141,7 @@ namespace DBController { // Proper DataBase Class
                         statuses Status = (statuses)reader.GetInt32(2);
                         roles Role = (roles)reader.GetInt32(3);
                         long GroupChatID = reader.GetInt64(4);
-                        proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
+                        // proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
                         if (Username == username) {
                             result = new Users(ChatID, Username, Status, Role, GroupChatID, LanguageProficiency);
                             if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
@@ -168,8 +169,9 @@ namespace DBController { // Proper DataBase Class
                 command.CommandText = 
                 @$"
                     INSERT INTO Users
-                    VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()}, {(int)user.getLanguageProficiencyLevel()});
+                    VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()});
                 ";
+                // {(int)form.getLanguageProficiencyLevel()}
                 connection.Open();
                 command.ExecuteNonQuery();
                 // possibly here some errors may occur, if they do, we switch result to true.

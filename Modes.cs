@@ -116,7 +116,7 @@ namespace BotModes {
                                 "Я хочу...",
                                 inlineKeyboard
                             );
-                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0, proficiencyLevels.zero))) // The user is added to the DB
+                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0))) // The user is added to the DB
                                 return; // what? The user is already in the DB? Then they shouldn't get here.
                             // switches the mode by adding the user to the DB
                             break;
@@ -146,7 +146,7 @@ namespace BotModes {
             switch (msgTextTemp) {
                 case "PARTICIPANT": {
                     Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
-                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0, proficiencyLevels.zero))) // The users status is changed
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode
@@ -154,7 +154,7 @@ namespace BotModes {
                 };
                 case "MINISTER": {
                     Console.WriteLine($"The user {usernameTemp} wants to register as a minister!");
-                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocMinister, roles.NONE, 0, proficiencyLevels.zero))) // The users status is changed
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocMinister, roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode
