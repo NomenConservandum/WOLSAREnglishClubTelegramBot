@@ -25,15 +25,27 @@ namespace DBController { // Proper DataBase Class
         host,           // ministers
         customer,       // once assigned this role the customer automatically gets the 'inQueue' status
     }
-    public class fillOutForm {
-        proficiencyLevels languageProficiency;
-        public fillOutForm() {}
-        public proficiencyLevels getLanguageProficiencyLevel() {
-            return languageProficiency;
-        }
-        public void setLanguageProficiencyLevel(proficiencyLevels newLevel) {
-            languageProficiency = newLevel;
-        }
+    public enum genders { // based
+      Male,
+      Female
+    }
+    public enum formats {
+      Offline,
+      Online
+    }
+    // The fill-out form Class for the participants
+    public class FillOutFormParticipants {
+        public genders sex = genders.Male;
+        public char age = (char)0, frequency = (char)0; // frequency: how many times a week
+        public formats format = formats.Offline;
+        public proficiencyLevels languageProficiency = proficiencyLevels.A1;
+        public String conductor = ""; // place or the messenger
+        public String time = ""; // the format: "DayOfTheWeek1: hour1_1, hour1_2, ...; DayOfTheWeek2:...;"
+        public float duration = 1;
+        public Boolean notifications = true;
+        public long interestsMask = 0; // a bit mask of interests: board games, video games, books reading, BSFN in English, food, lectures, tests, other options
+        public String otherInterests = "";
+        public FillOutFormParticipants() {}
     }
     public class Users {
         long chatID, groupChatID;
@@ -81,7 +93,7 @@ namespace DBController { // Proper DataBase Class
     public class DBApi {
         private String DBName = "";
         private Boolean DEBUG = true;
-	List<Users> list = new List<Users>() {}; // TOBEDELETED
+	      List<Users> list = new List<Users>() {}; // TOBEDELETED
         public DBApi(String DBName) {
             this.DBName = DBName;
 	    // while I'm on termux I cannot use a proper DB. TOBEDELETED
@@ -132,13 +144,13 @@ namespace DBController { // Proper DataBase Class
         public Users findByUsername(String username) {
             Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0);
             if (DEBUG) Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
-	    // TOBEDELETED
-	    foreach (var user in list) {
-		if (user.getUsername() == username) {
-                    if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
-		    return user;
-		}
-	    }
+	          // TOBEDELETED
+	          foreach (var user in list) {
+		          if (user.getUsername() == username) {
+                if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
+		              return user;
+	              }
+	          }
 	    /*
             // open the connection
             using (var connection = new SqliteConnection("Data Source=" + DBName + ".db")) {
@@ -166,6 +178,7 @@ namespace DBController { // Proper DataBase Class
                 Console.WriteLine($"RESULT: THE USER {username} HAS NOT BEEN FOUND");
             return result;
         }
+        
         public bool Add(Users user) {
             if (DEBUG) Console.WriteLine($"IN PROCESS: ADDING THE USER {user.getUsername()} TO THE DB");
             DEBUG = !DEBUG;
@@ -176,10 +189,10 @@ namespace DBController { // Proper DataBase Class
             }
             DEBUG = !DEBUG;
             bool result = false; // no error yet
-	    list.Add(user);
+	          list.Add(user);
             // TOBEDELETED
 	    /*
-	    using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
+	          using (var connection = new SqliteConnection($"Data Source={DBName}.db")) {
                 var command = connection.CreateCommand();
                 command.CommandText = 
                 @$"
@@ -200,10 +213,10 @@ namespace DBController { // Proper DataBase Class
         public bool Update(Users user) {
             if (DEBUG) Console.WriteLine($"IN PROCESS: UPDATING THE USER {user.getUsername()}");
             Boolean result = false; // no errors yet
-	    for (int i = 0; i < list.Count; ++i) {
-		if (list[i].getUsername() == user.getUsername())
-		    list[i] = user;
-	    }
+	          for (int i = 0; i < list.Count; ++i) {
+		        if (list[i].getUsername() == user.getUsername())
+		            list[i] = user;
+	          }
 	    // TOBEDELETED
 	    /*
 	    // open the connection
