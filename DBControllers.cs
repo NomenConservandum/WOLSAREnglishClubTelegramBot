@@ -36,12 +36,12 @@ namespace DBController { // Proper DataBase Class
     // The fill-out form Class for the participants
     public class FillOutFormParticipants {
         public genders sex = genders.Male;
-        public char age = (char)0, frequency = (char)0; // frequency: how many times a week
+        public int age = 0, frequency = 0; // frequency: how many times a week
         public formats format = formats.Offline;
         public proficiencyLevels languageProficiency = proficiencyLevels.A1;
         public String conductor = ""; // place or the messenger
         public String time = ""; // the format: "DayOfTheWeek1: hour1_1, hour1_2, ...; DayOfTheWeek2:...;"
-        public float duration = 1;
+        public int duration = 60; // in minutes
         public Boolean notifications = true;
         public long interestsMask = 0; // a bit mask of interests: board games, video games, books reading, BSFN in English, food, lectures, tests, other options
         public String otherInterests = "";

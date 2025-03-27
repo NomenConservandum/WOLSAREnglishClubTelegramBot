@@ -40,9 +40,9 @@ namespace BotAPI {
                     commands, DB
                 );
             } else if (foundUser.getStatus() == statuses.inregprocCustomer) {
-                // Nothing here yet
                 Console.WriteLine($"{usernameTemp} is registering as a participant!");
-            } else if (foundUser.getStatus() == statuses.inregprocMinister) {
+				modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
+			} else if (foundUser.getStatus() == statuses.inregprocMinister) {
                 // Nothing here yet
                 Console.WriteLine($"{usernameTemp} is registering as a minister!");
             }
