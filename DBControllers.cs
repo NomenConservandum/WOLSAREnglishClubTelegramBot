@@ -143,11 +143,11 @@ namespace DBController { // Proper DataBase Class
 
         public Users findByUsername(String username) {
             Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0);
-            if (DEBUG) Console.WriteLine($"IN PROCESS: IN SEARCH FOR THE USER {username}");
+            if (DEBUG) Console.WriteLine($"\tDataBase:\t\"IN PROCESS: in search for the user {username}\"");
 	          // TOBEDELETED
 	          foreach (var user in list) {
 		          if (user.getUsername() == username) {
-                if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
+                if (DEBUG) Console.WriteLine($"\tDataBase:\t\"RESULT: the user {username} has been found\"");
 		              return user;
 	              }
 	          }
@@ -167,7 +167,7 @@ namespace DBController { // Proper DataBase Class
                         // proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
                         if (Username == username) {
                             result = new Users(ChatID, Username, Status, Role, GroupChatID, LanguageProficiency);
-                            if (DEBUG) Console.WriteLine($"RESULT: THE USER {username} HAS BEEN FOUND");
+                            if (DEBUG) Console.WriteLine($"\tDataBase:\t"RESULT: the user {username} has been found\"");
                             break;
                         }
                     }
@@ -175,16 +175,16 @@ namespace DBController { // Proper DataBase Class
             }
 	    */
             if (!result.isValid() && DEBUG)
-                Console.WriteLine($"RESULT: THE USER {username} HAS NOT BEEN FOUND");
+                Console.WriteLine($"\tDataBase:\t\"RESULT: the user {username} has not been found\"");
             return result;
         }
         
         public bool Add(Users user) {
-            if (DEBUG) Console.WriteLine($"IN PROCESS: ADDING THE USER {user.getUsername()} TO THE DB");
+            if (DEBUG) Console.WriteLine($"\tDataBase:\t\"IN PROCESS: adding {user.getUsername()} to the DataBase\"");
             DEBUG = !DEBUG;
             if (findByUsername(user.getUsername()).isValid()) {
                 DEBUG = !DEBUG;
-                if (DEBUG) Console.WriteLine($"RESULT: THE USER {user.getUsername()} IS ALREADY IN THE DB");
+                if (DEBUG) Console.WriteLine($"\tDataBase:\t\"RESULT: the user {user.getUsername()} is already in the DataBase\"");
                 return true; // there is already such a user!
             }
             DEBUG = !DEBUG;
@@ -206,12 +206,12 @@ namespace DBController { // Proper DataBase Class
             }
 	    */
             if (!result && DEBUG)
-                Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN ADDED TO THE DB");
+                Console.WriteLine($"\tDataBase\t\"RESULT: the user {user.getUsername()} has been added to the DataBase\"");
             return result;
         }
         // the username cannot be changed, so we just overwrite the other fields
         public bool Update(Users user) {
-            if (DEBUG) Console.WriteLine($"IN PROCESS: UPDATING THE USER {user.getUsername()}");
+            if (DEBUG) Console.WriteLine($"\tDataBase:\t\"IN PROCESS: updating the user {user.getUsername()}\"");
             Boolean result = false; // no errors yet
 	          for (int i = 0; i < list.Count; ++i) {
 		        if (list[i].getUsername() == user.getUsername())
@@ -228,7 +228,7 @@ namespace DBController { // Proper DataBase Class
                 command.ExecuteNonQuery();
             }
 	    */
-            if (DEBUG && !result) Console.WriteLine($"RESULT: THE USER {user.getUsername()} HAS BEEN UPDATED SUCCESSFULLY");
+            if (DEBUG && !result) Console.WriteLine($"\tDataBase\t\"RESULT: the user {user.getUsername()} has been updated successfully\"");
             return result;
         }
     }

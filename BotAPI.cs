@@ -24,14 +24,14 @@ namespace BotAPI {
             String[] data = commands.getDataFromUpdate(update);
             usernameTemp = data[0];
             if (usernameTemp == " ") { // could not parse the username, no need for the further check
-                Console.WriteLine($"ERROR: THE USERNAME COULD NOT BE PARSED");
+                Console.WriteLine($"ERROR: the username could not be parsed! Update converted to string: {update.ToString()}");
                 return;
             }
             msgTextTemp = data[1];
             chatIdTemp = long.Parse(data[2]);
         }
         try {
-            Console.WriteLine($"There is a new message from {usernameTemp}!\nIt goes, \'{msgTextTemp}\'");
+            Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
             Users foundUser = DB.findByUsername(usernameTemp);
             if (foundUser.getStatus() == statuses.newcomer) { // The user is already in the DB
                 modes.newcomerMode(
@@ -40,11 +40,11 @@ namespace BotAPI {
                     commands, DB
                 );
             } else if (foundUser.getStatus() == statuses.inregprocCustomer) {
-                Console.WriteLine($"{usernameTemp} is registering as a participant!");
+                // Console.WriteLine($"User {usernameTemp}: registering as a participant");
 				modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
 			} else if (foundUser.getStatus() == statuses.inregprocMinister) {
                 // Nothing here yet
-                Console.WriteLine($"{usernameTemp} is registering as a minister!");
+                // Console.WriteLine($"User {usernameTemp}: registering as a minister");
             }
             else if (foundUser.isValid() == false) { // The user has met the bot for the first time
                 // The 'first encounter' mode

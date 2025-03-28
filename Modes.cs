@@ -10,6 +10,7 @@ using Sensitive;
 
 namespace BotModes {
     public class Modes {
+		private Boolean DEBUG = true;
         public Modes() {
             // ...
         }
@@ -130,6 +131,7 @@ namespace BotModes {
 							commands.deleteMessage(chatIdTemp, int.Parse(list[2]));
                             if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0))) // The user is added to the DB
                                 return; // what? The user is already in the DB? Then they shouldn't get here.
+							if (DEBUG) Console.WriteLine($"User {usernameTemp}: new status \'Newcomer\'");
                             // switches the mode by adding the user to the DB
                             break;
                         }
@@ -159,9 +161,9 @@ namespace BotModes {
 			String choice = list[0];
 			String messageID = list[1];
             // Bot sends the InLine keyboard with the choice
+			if (DEBUG) Console.WriteLine($"User {usernameTemp} has decided to register as a {choice}");
             switch (choice) {
                 case "PARTICIPANT": {
-                    Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
                     if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
@@ -183,7 +185,6 @@ namespace BotModes {
                     break;
                 };
                 case "MINISTER": {
-                    Console.WriteLine($"The user {usernameTemp} wants to register as a minister!");
                     if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocMinister, roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
@@ -221,9 +222,10 @@ namespace BotModes {
 			char stage = bodyList[0][0];
 			String messageID = list[1];
             String tempBody;
+			// if (DEBUG) Console.WriteLine($"User {usernameTemp} is at stage {stage}");
 			switch (stage) {
 				case '1': {
-                    Console.WriteLine($"{usernameTemp} is " + bodyList[1]);
+					if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[1]}");
 					tempBody = "2;" + bodyList[1]; // guarantees the next stage. Now this variable is used as a temporary string.
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -256,9 +258,8 @@ namespace BotModes {
                     break;
                 };
 				case '2': {
-					int age = int.Parse(bodyList[2]);
 					tempBody = "3;" + bodyList[1] + ';' + bodyList[2]; // guarantees the next stage. Now this variable is used as a temporary string.
-                    Console.WriteLine($"The user {usernameTemp} is " + age.ToString() + " years old.");
+					if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[2]} years old");
                     // sends commands that will be available only on the next stage
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -291,8 +292,7 @@ namespace BotModes {
                     break;
                 };
 				case '3': {
-					//
-                    Console.WriteLine($"The user {usernameTemp} has " + bodyList[3] + " in English.");
+                    Console.WriteLine($"User {usernameTemp} has {bodyList[3]} level knowledge about English.");
 					tempBody = "4;" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3]; // guarantees the next stage. Now this variable is used as a temporary string.
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -315,7 +315,7 @@ namespace BotModes {
 				case '4': {
 					//
 					tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":"; // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
-                    Console.WriteLine($"The user {usernameTemp} would preffer the " + bodyList[4] + " meetings.");
+                    Console.WriteLine($"User {usernameTemp} has chosen {bodyList[4]} meetings.");
 					String[] optionText = {"", "", ""}, optionCode = {"", "", ""}; // I'm very sorry for this dumb and straightforward code, I don't know how to do better
 					String msgText = "";
 					switch (bodyList[4]) {

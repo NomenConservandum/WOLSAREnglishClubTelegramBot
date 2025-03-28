@@ -7,6 +7,7 @@ using Telegram.Bot.Exceptions;
 
 namespace BasicCommands {
     public class Commands {
+		private Boolean DEBUG = true;
         private ITelegramBotClient botClient;
         public Commands() {}
         public Commands(ITelegramBotClient botClient) {
@@ -18,6 +19,7 @@ namespace BasicCommands {
 		}
 		public void deleteMessage(long chatID, int messageID) {
 			botClient.DeleteMessage(chatID, messageID);
+			if (DEBUG) Console.WriteLine($"Bot:\t\"deleted a message in a chat with {botClient.GetChat(chatID).Result.Username}\"");
 			return;
 		}
 		public Message sendMsg(long chatID, String msg) {
