@@ -58,14 +58,16 @@ namespace BotModes {
         ) {
             switch(update.Type) {
                 case UpdateType.Message: { // greet the user and suggest them to go through a regestration process
-                    if (msgTextTemp != "/start") {
+					int incomingMessageID = update.Message.Id;
+					if (msgTextTemp != "/start") {
                         commands.sendMsg(
                             chatIdTemp,
                             "Если что, команда: /start"
                         );
+						commands.deleteMessage(chatIdTemp, incomingMessageID);
                         break;
                     }
-                    Variables sensitive = new Variables();
+					Variables sensitive = new Variables();
                     // Bot sends the InLine keyboard with the choice
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -79,7 +81,7 @@ namespace BotModes {
                     );
                     var msg1 = commands.sendMsgInline(
                         chatIdTemp,
-                        "LOADING...",
+                        "🏃🏻LOADING...",
                         inlineKeyboard
                     );
                     var dataTransferAgreenment = new InlineKeyboardMarkup(
@@ -114,15 +116,15 @@ namespace BotModes {
                 case UpdateType.CallbackQuery: {
                     switch (msgTextTemp.Substring(0, 12)) {
                         case "REGISTRATION": {
+							var list = msgTextTemp.Split(';');
                             var inlineKeyboard = new InlineKeyboardMarkup(
                                 new List<InlineKeyboardButton[]>() {
                                     new InlineKeyboardButton[] {
-                                    InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT"),                  
-                                    InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER"),
+                                    InlineKeyboardButton.WithCallbackData("Стать участником!", "PARTICIPANT|" + list[1]),                  
+                                    InlineKeyboardButton.WithCallbackData("Стать служителем!", "MINISTER|" + list[1]),
                                     },
                                 }
                             );
-							var list = msgTextTemp.Split(';');
                             // update the inline message and delete the data transfer message
                             commands.updateInlineMessage(chatIdTemp, int.Parse(list[1]), "Я хочу...", inlineKeyboard);
 							commands.deleteMessage(chatIdTemp, int.Parse(list[2]));
@@ -136,6 +138,7 @@ namespace BotModes {
                                 chatIdTemp,
                                 "Error: unknown command (it may be not available any more)"
                             );
+							//commands.deleteMessage(chatIdTemp, incomingMessageID);
                             break;
                         }
                     }
@@ -152,32 +155,31 @@ namespace BotModes {
             String usernameTemp, String msgTextTemp, long chatIdTemp,
             Commands commands, DBApi DB
         ) {
+			var list = msgTextTemp.Split('|');
+			String choice = list[0];
+			String messageID = list[1];
             // Bot sends the InLine keyboard with the choice
-            switch (msgTextTemp) {
+            switch (choice) {
                 case "PARTICIPANT": {
                     Console.WriteLine($"The user {usernameTemp} wants to register as a participant!");
                     if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode: 'inregprocCustomer'
-                    var msg1 = commands.sendMsg(
-                        chatIdTemp,
-                        "А теперь предлагаю тебе заполнить форму)"
-                    );
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Мужской", "1;MALE"),                  
-                            InlineKeyboardButton.WithCallbackData("Женский", "1;FEMALE"),
+                            InlineKeyboardButton.WithCallbackData("Мужской", "1;MALE|" + messageID),                  
+                            InlineKeyboardButton.WithCallbackData("Женский", "1;FEMALE|" + messageID),
                             },
                         }
                     );
-                    // send a message with the inline keyboard
-                    commands.sendMsgInline(
-                        chatIdTemp,
-                        "Первый вопрос.\nТвой пол:",
-                        inlineKeyboard
-                    );
+                    commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
+						"Первый вопрос.\nТвой пол:",
+						inlineKeyboard
+					);
                     break;
                 };
                 case "MINISTER": {
@@ -193,10 +195,12 @@ namespace BotModes {
                     break;
                 };
                 default: {
-                    commands.sendMsg(
+                    /*
+					commands.sendMsg(
                         chatIdTemp,
                         "Error: unknown command (it may be not available any more)"
                     );
+					*/
                     break;
                 };
             }
@@ -206,44 +210,46 @@ namespace BotModes {
             String usernameTemp, String msgTextTemp, long chatIdTemp,
             Commands commands, DBApi DB
         ) {
-			var bodyList = msgTextTemp.Split(';');
+			var list = msgTextTemp.Split('|');
+			var bodyList = list[0].Split(';');
+			char stage = bodyList[0][0];
+			String messageID = list[1];
             String tempBody;
-			switch (bodyList[0]) {
-				case "1": {
+			switch (stage) {
+				case '1': {
                     Console.WriteLine($"{usernameTemp} is " + bodyList[1]);
 					tempBody = "2;" + bodyList[1]; // guarantees the next stage. Now this variable is used as a temporary string.
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("15", tempBody + ";15"),
-                            InlineKeyboardButton.WithCallbackData("16", tempBody + ";16"),
-                            InlineKeyboardButton.WithCallbackData("17", tempBody + ";17"),
+                            InlineKeyboardButton.WithCallbackData("15", tempBody + ";15|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("16", tempBody + ";16|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("17", tempBody + ";17|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("18", tempBody + ";18"),
-                            InlineKeyboardButton.WithCallbackData("19", tempBody + ";19"),
-                            InlineKeyboardButton.WithCallbackData("20", tempBody + ";20"),
-                            InlineKeyboardButton.WithCallbackData("21", tempBody + ";21"),
+                            InlineKeyboardButton.WithCallbackData("18", tempBody + ";18|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("19", tempBody + ";19|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("20", tempBody + ";20|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("21", tempBody + ";21|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("22", tempBody + ";22"),
-                            InlineKeyboardButton.WithCallbackData("23", tempBody + ";23"),
-                            InlineKeyboardButton.WithCallbackData("24", tempBody + ";24"),
-                            InlineKeyboardButton.WithCallbackData("25", tempBody + ";25"),
+                            InlineKeyboardButton.WithCallbackData("22", tempBody + ";22|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("23", tempBody + ";23|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("24", tempBody + ";24|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("25", tempBody + ";25|" + messageID),
                             },
                         }
                     );
-                    // send a message with the inline keyboard
-                    commands.sendMsgInline(
-                        chatIdTemp,
+                    commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
                         "Второй вопрос.\nТвой возраст:",
                         inlineKeyboard
-                    );
-
+					);
                     // sends commands that will be available only on the next stage
                     break;
                 };
-				case "2": {
+				case '2': {
 					int age = int.Parse(bodyList[2]);
                     Console.WriteLine($"The user {usernameTemp} is " + age.ToString() + " years old.");
                     // sends commands that will be available only on the next stage
