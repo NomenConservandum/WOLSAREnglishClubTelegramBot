@@ -251,10 +251,67 @@ namespace BotModes {
                 };
 				case '2': {
 					int age = int.Parse(bodyList[2]);
+					tempBody = "3;" + bodyList[1] + ';' + bodyList[2]; // guarantees the next stage. Now this variable is used as a temporary string.
                     Console.WriteLine($"The user {usernameTemp} is " + age.ToString() + " years old.");
                     // sends commands that will be available only on the next stage
+                    var inlineKeyboard = new InlineKeyboardMarkup(
+                        new List<InlineKeyboardButton[]>() {
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("Нулевой: Не знаю алфавита, лишь пару слов максимум😜", tempBody + ";0|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("A1: Могу представиться, задать простые личные вопросы🎩", tempBody + ";A1|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("A2: Могу рассказать что делаю по жизни, спросить дорогу💇", tempBody + ";A2|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("B1: Могу легко делиться мнением, мечтами, своими хобби", tempBody + ";B1|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("B2: Могу свободно общаться на отвлечённые темы (не хобби)", tempBody + ";B2|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("C1: Могу изъясняться свободно и спонтанно без затруднений💅", tempBody + ";C1|" + messageID),
+                            },
+                        }
+                    );
+                    commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
+                        "Третий вопрос.\nТвой уровень владения языком:",
+                        inlineKeyboard
+					);
                     break;
                 };
+				case '3': {
+					//
+                    Console.WriteLine($"The user {usernameTemp} has " + bodyList[3] + " in English.");
+					tempBody = "4;" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3]; // guarantees the next stage. Now this variable is used as a temporary string.
+                    var inlineKeyboard = new InlineKeyboardMarkup(
+                        new List<InlineKeyboardButton[]>() {
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("Оффлайн", tempBody + ";OFFLINE|" + messageID),
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("Онлайн", tempBody + ";ONLINE|" + messageID),
+                            },
+                        }
+                    );
+                    commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
+                        "Четвёртый вопрос.\nКакого формата предпочтёшь встречи?",
+                        inlineKeyboard
+					);
+					break;
+				}
+				case '4': {
+					//
+                    Console.WriteLine($"The user {usernameTemp} would preffer the " + bodyList[4] + " meetings.");
+					//
+					break;
+				}
                 default: {
                     commands.sendMsg(
                         chatIdTemp,
