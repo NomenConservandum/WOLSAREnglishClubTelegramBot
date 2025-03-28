@@ -264,22 +264,22 @@ namespace BotModes {
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Нулевой: Не знаю алфавита, лишь пару слов максимум😜", tempBody + ";0|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("Нулевой: Знаю пару слов максимум😜", tempBody + ";0|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("A1: Могу представиться, задать простые личные вопросы🎩", tempBody + ";A1|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("A1: Могу делать простые предложения🎩", tempBody + ";A1|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("A2: Могу рассказать что делаю по жизни, спросить дорогу💇", tempBody + ";A2|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("A2: Могу рассказать, что делаю по жизни", tempBody + ";A2|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("B1: Могу легко делиться мнением, мечтами, своими хобби", tempBody + ";B1|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("B1: Могу легко делиться мнением / хобби", tempBody + ";B1|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("B2: Могу свободно общаться на отвлечённые темы (не хобби)", tempBody + ";B2|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("B2: Могу легко общаться на разные темы", tempBody + ";B2|" + messageID),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("C1: Могу изъясняться свободно и спонтанно без затруднений💅", tempBody + ";C1|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("C1: Могу изъясняться легко и спонтанно💅", tempBody + ";C1|" + messageID),
                             },
                         }
                     );
