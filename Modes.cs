@@ -70,17 +70,16 @@ namespace BotModes {
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Начать регистрацию!", "REGISTRATION"),
+                            InlineKeyboardButton.WithCallbackData("...", "NONE"),
                             },
                             new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithUrl("Узнать больше о клубе (FAQ)", sensitive.getFAQLink()), 
+                            InlineKeyboardButton.WithCallbackData("...", "NONE"), 
                             },
                         }
                     );
-
-                    commands.sendMsgInline(
+                    var msg1 = commands.sendMsgInline(
                         chatIdTemp,
-                        "Я хочу...",
+                        "LOADING...",
                         inlineKeyboard
                     );
                     var dataTransferAgreenment = new InlineKeyboardMarkup(
@@ -90,17 +89,30 @@ namespace BotModes {
                             },
                         }
                     );
-                    commands.sendMsgInline(
+                    var msg2 = commands.sendMsgInline(
                         chatIdTemp,
                         "Нажимая на 'Начать регистрацию!', Вы соглашаетесь на обработку персональных данных (текст согласия доступен ниже)",
                         dataTransferAgreenment
                     );
+					String dataString = "REGISTRATION;" + msg1.Id.ToString() + ";" + msg2.Id.ToString();
+                    inlineKeyboard = new InlineKeyboardMarkup(
+                        new List<InlineKeyboardButton[]>() {
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithCallbackData("Начать регистрацию!", dataString)
+                            },
+                            new InlineKeyboardButton[] {
+                            InlineKeyboardButton.WithUrl("Узнать больше о клубе (FAQ)", sensitive.getFAQLink()), 
+                            },
+                        }
+                    );
                     
-                    
+					// update the registration button to have ID's inside to pass them further
+                    commands.updateInlineMessage(chatIdTemp, msg1.Id, "Я хочу...", inlineKeyboard);
+					
                     break;
                 };
                 case UpdateType.CallbackQuery: {
-                    switch (msgTextTemp) {
+                    switch (msgTextTemp.Substring(0, 12)) {
                         case "REGISTRATION": {
                             var inlineKeyboard = new InlineKeyboardMarkup(
                                 new List<InlineKeyboardButton[]>() {
@@ -110,12 +122,10 @@ namespace BotModes {
                                     },
                                 }
                             );
-                            // send a message with the inline keyboard
-                            commands.sendMsgInline(
-                                chatIdTemp,
-                                "Я хочу...",
-                                inlineKeyboard
-                            );
+							var list = msgTextTemp.Split(';');
+                            // update the inline message and delete the data transfer message
+                            commands.updateInlineMessage(chatIdTemp, int.Parse(list[1]), "Я хочу...", inlineKeyboard);
+							commands.deleteMessage(chatIdTemp, int.Parse(list[2]));
                             if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0))) // The user is added to the DB
                                 return; // what? The user is already in the DB? Then they shouldn't get here.
                             // switches the mode by adding the user to the DB
@@ -150,7 +160,7 @@ namespace BotModes {
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode: 'inregprocCustomer'
-                    commands.sendMsg(
+                    var msg1 = commands.sendMsg(
                         chatIdTemp,
                         "А теперь предлагаю тебе заполнить форму)"
                     );

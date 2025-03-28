@@ -12,21 +12,28 @@ namespace BasicCommands {
         public Commands(ITelegramBotClient botClient) {
             this.botClient = botClient;
         }
-
-        public void sendMsg(long chatID, String msg) {
-            botClient.SendMessage(
+		public void updateInlineMessage(long chatID, int messageID, String newText, InlineKeyboardMarkup newMarkup) {
+			botClient.EditMessageText(chatID, messageID, newText, replyMarkup: newMarkup);
+			return;
+		}
+		public void deleteMessage(long chatID, int messageID) {
+			botClient.DeleteMessage(chatID, messageID);
+			return;
+		}
+		public Message sendMsg(long chatID, String msg) {
+            Task<Message> taskmsg = botClient.SendMessage(
                 chatID,
                 msg
             );
-            return;
+            return taskmsg.Result;
         }
-        public void sendMsgInline(long chatID, String msg, InlineKeyboardMarkup ikm) {
-            botClient.SendMessage(
+        public Message sendMsgInline(long chatID, String msg, InlineKeyboardMarkup ikm) {
+            Task<Message> taskmsg = botClient.SendMessage(
                     chatID,
                     msg,
                     replyMarkup: ikm
-                    );
-            return;
+            );
+			return taskmsg.Result;
         }
         // Either user clicks on the link or sends 'NEGATIVE' via callBackQuery
         public void sendInlineURL(long chatID, String msg, String msgLink, String msgNegative, String url) {
