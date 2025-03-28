@@ -210,6 +210,12 @@ namespace BotModes {
             String usernameTemp, String msgTextTemp, long chatIdTemp,
             Commands commands, DBApi DB
         ) {
+			if (msgTextTemp.Split('|').Count() == 1) {
+				// FIX: Это момент, когда пользователь сам пишет своё предложение о мессенджере или месте проведения.
+				// Я не знаю пока как это обрабатывать, скорее всего придётся от этого просто отказать и заместо
+				// "Свой вариант" писать "Другое" и никак это не обрабатывать и пусть хосты разбираются со всеми сами
+				return;
+			}
 			var list = msgTextTemp.Split('|');
 			var bodyList = list[0].Split(';');
 			char stage = bodyList[0][0];
@@ -308,7 +314,89 @@ namespace BotModes {
 				}
 				case '4': {
 					//
+					tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":"; // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
                     Console.WriteLine($"The user {usernameTemp} would preffer the " + bodyList[4] + " meetings.");
+					String[] optionText = {"", "", ""}, optionCode = {"", "", ""}; // I'm very sorry for this dumb and straightforward code, I don't know how to do better
+					String msgText = "";
+					switch (bodyList[4]) {
+						case "OFFLINE": {
+							msgText = "Твой выбор: оффлайн встречи.\nГде ты предпочтёшь встречаться?";
+							optionText[0] = "В здании церкви"; // TODO: Добавить адрес при получении разрешения
+							optionCode[0] = "CHURCH";
+							//optionText[2] = "в здании СГУ (12й корпус)"; // NOTE: Я не знаю, буду ли это добавлять
+							//optionCode[2] = "SSU12D";
+							optionText[1] = "Тайм-кафе (дружба, лофт и другие)";
+							optionCode[1] = "TIME-CAFE";
+							optionText[2] = "TEMPORARY UNAVAILABLE"; // FIX: Заменить либо на СГУ, либо на что-то другое нейтральное
+							optionCode[2] = "NONE";
+							break;
+						}
+						case "ONLINE": {
+							msgText = "Твой выбор: онлайн встречи.\nГде ты предпочтёшь созваниваться?";
+							optionText[0] = "в Telegram";
+							optionCode[0] = "TELEGRAM";
+							optionText[1] = "в Discord"; 
+							optionCode[1] = "DISCORD";
+							optionText[2] = "в VK";
+							optionCode[2] = "VK";
+							break;
+					    }
+						// In these two cases the bot asks the user to write their own idea (sends a message and saves its id) (less than 20 symbols)
+						case "OFFLINE:OTHER": {
+							var msg = commands.sendMsg(
+									chatIdTemp,
+									"Напиши свой вариант (Формат сообщения: не более 20 символов)"
+								);
+							break;
+						}
+						case "ONLINE:OTHER": {
+							var msg = commands.sendMsg(
+									chatIdTemp,
+									"Напиши свой вариант (Формат сообщения: не более 20 символов)"
+								);
+							break;
+						}
+					}
+
+					String BaseString = '5' + tempBody + "CODE|" + messageID;
+			        
+					var inlineKeyboardList =
+						new List<InlineKeyboardButton[]>() {
+		                    new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData("...", "NONE"),
+				            },
+		                    new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData("...", "NONE"),
+				            },
+		                    new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData("...", "NONE"),
+				            },
+					        new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("Свой вариант (Баг: обнуляет прогресс)", '4' + tempBody + "OTHER|" + messageID),
+							},
+					        //new InlineKeyboardButton[] {
+							//InlineKeyboardButton.WithCallbackData("Следующий вопрос", tempBody + "|" + messageID),
+							//},
+						};
+					
+					for (int i = 0; i < 3; ++i)
+					    inlineKeyboardList[i][0] =
+							InlineKeyboardButton.WithCallbackData(
+								optionText[i],
+								BaseString.Replace("CODE", optionCode[i])
+							);
+		            
+		            var inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboardList);
+					
+					commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
+						msgText,
+				        inlineKeyboard
+					);
+					break;
+				}
+				case '5': {
 					//
 					break;
 				}
@@ -321,5 +409,6 @@ namespace BotModes {
                 };
             }
 		}
+		//
     }
 }

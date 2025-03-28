@@ -40,7 +40,7 @@ namespace DBController { // Proper DataBase Class
         public formats format = formats.Offline;
         public proficiencyLevels languageProficiency = proficiencyLevels.A1;
         public String conductor = ""; // place or the messenger
-        public String time = ""; // the format: "DayOfTheWeek1: hour1_1, hour1_2, ...; DayOfTheWeek2:...;"
+        public String time = ""; // the format: "Monday: hour1_1, hour1_2, ...&Tuesday: hour2_1, hour2_2, ... &... &Sunday: hour7_1, hour7_2, ..."
         public int duration = 60; // in minutes
         public Boolean notifications = true;
         public long interestsMask = 0; // a bit mask of interests: board games, video games, books reading, BSFN in English, food, lectures, tests, other options
