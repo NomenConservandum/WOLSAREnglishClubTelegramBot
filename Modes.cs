@@ -398,6 +398,25 @@ namespace BotModes {
 				}
 				case '5': {
 					//
+          // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
+					tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":" + bodyList[5] + ";CODE|" + messageID;
+					var inlineKeyboardList =
+						new List<InlineKeyboardButton[]>() { // it will have many interest options
+		          new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("...", "NONE"),				        },
+	            new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("...", "NONE"),
+			        },
+		          new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("...", "NONE"),
+				      },
+					    new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("Свой вариант (Баг: обнуляет прогресс)", '4' + tempBody + "OTHER|" + messageID),
+							},
+					    new InlineKeyboardButton[] {
+							InlineKeyboardButton.WithCallbackData("Следующий вопрос", tempBody + "|" + messageID),
+							},
+						};
 					break;
 				}
                 default: {
