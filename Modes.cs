@@ -1,9 +1,9 @@
-using Telegram.Bot;
+//using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Bot.Polling;
-using Telegram.Bot.Exceptions;
+//using Telegram.Bot.Polling;
+//using Telegram.Bot.Exceptions;
 using BasicCommands;
 using DBController;
 using Sensitive;
@@ -59,7 +59,7 @@ namespace BotModes {
         ) {
             switch(update.Type) {
                 case UpdateType.Message: { // greet the user and suggest them to go through a regestration process
-					int incomingMessageID = update.Message.Id;
+					int incomingMessageID = update?.Message?.Id ?? 0;
 					if (msgTextTemp != "/start") {
                         commands.sendMsg(
                             chatIdTemp,
@@ -140,7 +140,6 @@ namespace BotModes {
                                 chatIdTemp,
                                 "Error: unknown command (it may be not available any more)"
                             );
-							//commands.deleteMessage(chatIdTemp, incomingMessageID);
                             break;
                         }
                     }
@@ -179,7 +178,7 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-						"Первый вопрос.\nТвой пол:",
+						"1 / ... .\nТвой пол:",
 						inlineKeyboard
 					);
                     break;
@@ -215,6 +214,7 @@ namespace BotModes {
 				// FIX: Это момент, когда пользователь сам пишет своё предложение о мессенджере или месте проведения.
 				// Я не знаю пока как это обрабатывать, скорее всего придётся от этого просто отказать и заместо
 				// "Свой вариант" писать "Другое" и никак это не обрабатывать и пусть хосты разбираются со всеми сами
+				// NOTE: можно кодировать строку с выборами и отсылать прямо в сообщении, а после брать это сообщение, вынимать строку, дэкодировать и норм (только как мне достать сообщение тогда?)
 				return;
 			}
 			var list = msgTextTemp.Split('|');
@@ -251,7 +251,7 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "Второй вопрос.\nТвой возраст:",
+                        "2 / ... .\nТвой возраст:",
                         inlineKeyboard
 					);
                     // sends commands that will be available only on the next stage
@@ -286,7 +286,7 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "Третий вопрос.\nТвой уровень владения языком:",
+                        "3 / ... .\nТвой уровень владения языком:",
                         inlineKeyboard
 					);
                     break;
@@ -307,7 +307,7 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "Четвёртый вопрос.\nКакого формата предпочтёшь встречи?",
+                        "4 / ... .\nКакого формата предпочтёшь встречи?",
                         inlineKeyboard
 					);
 					break;
@@ -397,26 +397,68 @@ namespace BotModes {
 					break;
 				}
 				case '5': {
-					//
-          // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
-					tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":" + bodyList[5] + ";CODE|" + messageID;
-					var inlineKeyboardList =
-						new List<InlineKeyboardButton[]>() { // it will have many interest options
-		          new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("...", "NONE"),				        },
-	            new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("...", "NONE"),
-			        },
-		          new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("...", "NONE"),
-				      },
-					    new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("Свой вариант (Баг: обнуляет прогресс)", '4' + tempBody + "OTHER|" + messageID),
-							},
-					    new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("Следующий вопрос", tempBody + "|" + messageID),
-							},
-						};
+					String msgText = "5 / ...: Что хочешь видеть на встречах клуба?";
+					String[][] options = new String[][] {
+						new String [] {"Настольные игры", "BOARDGAMES"},
+						new String [] {"Видеоигры", "VIDEOGAMES"},
+						new String [] {"Книги", "BOOKS"},
+						new String [] {"ИБДН", "BSFNR"},
+						new String [] {"Еда", "FOOD"},
+						new String [] {"Структурированный материал", "STRUCTUREDMATERIALS"},
+						new String [] {"Свой вариант (ложит процесс)", "CUSTOM"}, // потенциальное решение: закэшировать весь код и отправить его в следующем сообщении бота, дождаться ответа юзера и после удалить оба сообщения, декэшировать и вернуть выбор
+						new String [] {"Следующий вопрос", "NEXT"}
+					};
+					// I'm very sorry for this dumb and straightforward code, I don't know how to do better
+					short numberOfOptions = 7, chosenMask = 0;
+					if (bodyList.Count() == 6) { // The user is on this stage not for the first time
+						chosenMask = short.Parse(bodyList[5]);
+						if (chosenMask != 0) numberOfOptions = 8; // now we include the 'next question' button
+						if (bodyList.Count() == 7) {// The user is on this stage not for the first time
+							msgText += "\nТвой выбор: ";
+							for (int i = 0; i < 7; ++i)
+								if (((chosenMask >> i) & 1) == 1) // the option is chosen
+									msgText += ", " + options[i][0];
+						}
+					}
+					// it will have many interest options
+					var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
+					
+					for (short i = 0; i < numberOfOptions; ++i) {
+						String resultString = "";
+						if (((chosenMask >> i) & 1) == 0 && i != 7) // check if the user hasn't chosen this particular option
+							resultString += "5;";
+						if (i == 7) { // let's check for the 'next' button first
+							resultString += "6;";
+						}
+						short tempMask = chosenMask;
+						// now let's make a proper string: if it was chosen already, it should be removed, if not, it should be added
+						if (((chosenMask >> i) & 1) == 1) { // the option is chosen and add the 'Убрать выбор' text
+							tempMask &= (short)~(1 << i); // we remove the option as being chosen from the mask for the particular button
+							options[i][0] += " (убрать выбор)";
+							resultString += "5;"; // HACK: I guess this system is absolete: I can just split the string and look how many parts are there.
+						} else { // add the option
+							tempMask |= (short)(1 << i); // we add the option to the mask for the particular button
+						}
+						// merge the body into one string
+						for (int j = 1; j < 5; ++j)
+							resultString += bodyList[j] + ';';
+						resultString += tempMask.ToString() + '|' + messageID;
+						
+						inlineKeyboardList.Add(
+							new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData(options[i][0], resultString)
+							}
+						);
+					}
+					
+		            var inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboardList);
+					
+					commands.updateInlineMessage(
+						chatIdTemp,
+						int.Parse(messageID),
+						msgText,
+				        inlineKeyboard
+					);
 					break;
 				}
                 default: {
