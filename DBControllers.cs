@@ -9,7 +9,7 @@ namespace DBController { // Proper DataBase Class
         B2,
         C1
     }
-    public enum statuses {
+    public enum Statuses {
         NONE,           // The user who has met the bot for the first time. They are welcomed and are suggested to register.
         newcomer,       // Pre-registration status
         inregprocMinister,  // inregproc: in registration process
@@ -18,26 +18,26 @@ namespace DBController { // Proper DataBase Class
         inLearningProc,     // a participant who is assigned to a small group. When small group is terminated the customer gets the 'none' role.
         done                // if the customer has the 'done' status they will be asked if they want to terminate the service
     }
-    public enum roles {
+    public enum Roles {
         NONE,           // no role: newcomer
         representative, // ministers
         mms,            // ministers
         host,           // ministers
         customer,       // once assigned this role the customer automatically gets the 'inQueue' status
     }
-    public enum genders { // based
+    public enum Genders { // based
       Male,
       Female
     }
-    public enum formats {
+    public enum Formats {
       Offline,
       Online
     }
     // The fill-out form Class for the participants
     public class FillOutFormParticipants {
-        public genders sex = genders.Male;
+        public Genders sex = Genders.Male;
         public int age = 0, frequency = 0; // frequency: how many times a week
-        public formats format = formats.Offline;
+        public Formats format = Formats.Offline;
         public proficiencyLevels languageProficiency = proficiencyLevels.A1;
         public String conductor = ""; // place or the messenger
         public String time = ""; // the format: "Monday: hour1_1, hour1_2, ...&Tuesday: hour2_1, hour2_2, ... &... &Sunday: hour7_1, hour7_2, ..."
@@ -49,8 +49,8 @@ namespace DBController { // Proper DataBase Class
     }
     public class Users {
         long chatID, groupChatID;
-        statuses status;
-        roles role;
+        Statuses status;
+        Roles role;
         String username;
         public long getChatID() {
             return chatID;
@@ -64,19 +64,19 @@ namespace DBController { // Proper DataBase Class
         public void setGroupChatID(int newID) {
             groupChatID = newID;
         }
-        public statuses getStatus() {
+        public Statuses getStatus() {
             return status;
         }
-        public void setStatus(statuses newStatus) {
+        public void setStatus(Statuses newStatus) {
             status = newStatus;
         }
-        public roles getRole() {
+        public Roles getRole() {
             return role;
         }
-        public void setRole(roles newRole) {
+        public void setRole(Roles newRole) {
             role = newRole;
         }
-        public Users(long chatID, String username, statuses status, roles role, long groupChatID) {
+        public Users(long chatID, String username, Statuses status, Roles role, long groupChatID) {
             this.chatID = chatID;
             this.username = username;
             this.status = status;
@@ -142,7 +142,7 @@ namespace DBController { // Proper DataBase Class
         public DBApi() {}
 
         public Users findByUsername(String username) {
-            Users result = new Users(0, "NONE", statuses.NONE, roles.NONE, 0);
+            Users result = new Users(0, "NONE", Statuses.NONE, Roles.NONE, 0);
             if (DEBUG) Console.WriteLine($"\tDataBase:\t\"IN PROCESS: in search for the user {username}\"");
 	          // TOBEDELETED
 	          foreach (var user in list) {
@@ -161,8 +161,8 @@ namespace DBController { // Proper DataBase Class
                     while (reader.Read()) {
                         long ChatID = reader.GetInt64(0);
                         String Username = reader.GetString(1);
-                        statuses Status = (statuses)reader.GetInt32(2);
-                        roles Role = (roles)reader.GetInt32(3);
+                        Statuses Status = (Statuses)reader.GetInt32(2);
+                        Roles Role = (Roles)reader.GetInt32(3);
                         long GroupChatID = reader.GetInt64(4);
                         // proficiencyLevels LanguageProficiency = (proficiencyLevels)reader.GetInt32(5);
                         if (Username == username) {

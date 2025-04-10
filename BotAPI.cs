@@ -1,7 +1,6 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
 using Sensitive;
@@ -11,7 +10,7 @@ using BotModes;
 
 namespace BotAPI {
     public class Bot {
-    private static ITelegramBotClient botClient;
+    private static ITelegramBotClient? botClient;
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
     private static Commands commands = new Commands();
@@ -33,16 +32,16 @@ namespace BotAPI {
         try {
             Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
             Users foundUser = DB.findByUsername(usernameTemp);
-            if (foundUser.getStatus() == statuses.newcomer) { // The user is already in the DB
+            if (foundUser.getStatus() == Statuses.newcomer) { // The user is already in the DB
                 modes.newcomerMode(
                     update,
                     usernameTemp, msgTextTemp, chatIdTemp,
                     commands, DB
                 );
-            } else if (foundUser.getStatus() == statuses.inregprocCustomer) {
+            } else if (foundUser.getStatus() == Statuses.inregprocCustomer) {
                 // Console.WriteLine($"User {usernameTemp}: registering as a participant");
 				modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
-			} else if (foundUser.getStatus() == statuses.inregprocMinister) {
+			} else if (foundUser.getStatus() == Statuses.inregprocMinister) {
                 // Nothing here yet
                 // Console.WriteLine($"User {usernameTemp}: registering as a minister");
             }
@@ -73,11 +72,15 @@ namespace BotAPI {
         return Task.CompletedTask;
     }
     // Not my code block ends
+	
+	public User? getMe() {
+		return botClient?.GetMe().Result;
+	}
 
     // Should be used with 'await' keyword
-    public System.Threading.Tasks.Task<Telegram.Bot.Types.User> getMe() {
-        return botClient.GetMe();
-    }
+    //public System.Threading.Tasks.Task<Telegram.Bot.Types.User> getMe() {
+    //    return botClient?.GetMe() ?? new User();
+    //}
     
     public Bot() {
         Variables sensitive = new Variables();

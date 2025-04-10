@@ -1,9 +1,6 @@
-//using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-//using Telegram.Bot.Polling;
-//using Telegram.Bot.Exceptions;
 using BasicCommands;
 using DBController;
 using Sensitive;
@@ -129,7 +126,7 @@ namespace BotModes {
                             // update the inline message and delete the data transfer message
                             commands.updateInlineMessage(chatIdTemp, int.Parse(list[1]), "Я хочу...", inlineKeyboard);
 							commands.deleteMessage(chatIdTemp, int.Parse(list[2]));
-                            if (DB.Add(new Users(chatIdTemp, usernameTemp, statuses.newcomer, roles.NONE, 0))) // The user is added to the DB
+                            if (DB.Add(new Users(chatIdTemp, usernameTemp, Statuses.newcomer, Roles.NONE, 0))) // The user is added to the DB
                                 return; // what? The user is already in the DB? Then they shouldn't get here.
 							if (DEBUG) Console.WriteLine($"User {usernameTemp}: new status \'Newcomer\'");
                             // switches the mode by adding the user to the DB
@@ -163,7 +160,7 @@ namespace BotModes {
 			if (DEBUG) Console.WriteLine($"User {usernameTemp} has decided to register as a {choice}");
             switch (choice) {
                 case "PARTICIPANT": {
-                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocCustomer, roles.NONE, 0))) // The users status is changed
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, Statuses.inregprocCustomer, Roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode: 'inregprocCustomer'
@@ -178,13 +175,13 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-						"1 / ... .\nТвой пол:",
+						"1 / ... \nТвой пол:",
 						inlineKeyboard
 					);
                     break;
                 };
                 case "MINISTER": {
-                    if (DB.Update(new Users(chatIdTemp, usernameTemp, statuses.inregprocMinister, roles.NONE, 0))) // The users status is changed
+                    if (DB.Update(new Users(chatIdTemp, usernameTemp, Statuses.inregprocMinister, Roles.NONE, 0))) // The users status is changed
                         return;
                     // this mode won't be used anymore
                     // sends commands that will be available only in the next mode
@@ -222,36 +219,26 @@ namespace BotModes {
 			char stage = bodyList[0][0];
 			String messageID = list[1];
             String tempBody;
-			// if (DEBUG) Console.WriteLine($"User {usernameTemp} is at stage {stage}");
 			switch (stage) {
 				case '1': {
 					if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[1]}");
 					tempBody = "2;" + bodyList[1]; // guarantees the next stage. Now this variable is used as a temporary string.
-                    var inlineKeyboard = new InlineKeyboardMarkup(
-                        new List<InlineKeyboardButton[]>() {
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("15", tempBody + ";15|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("16", tempBody + ";16|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("17", tempBody + ";17|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("18", tempBody + ";18|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("19", tempBody + ";19|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("20", tempBody + ";20|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("21", tempBody + ";21|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("22", tempBody + ";22|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("23", tempBody + ";23|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("24", tempBody + ";24|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("25", tempBody + ";25|" + messageID),
-                            },
-                        }
-                    );
+                    var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
+					for (short i = 15; i < 26; i += 4) {
+						inlineKeyboardList.Add(
+							new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData(i.ToString(), tempBody + ';' + i.ToString() + '|' + messageID),
+								InlineKeyboardButton.WithCallbackData((i + 1).ToString(), tempBody + ';' + (i + 1).ToString() + '|' + messageID),
+								InlineKeyboardButton.WithCallbackData((i + 2).ToString(), tempBody + ';' + (i + 2).ToString() + '|' + messageID),
+								InlineKeyboardButton.WithCallbackData((i + 3).ToString(), tempBody + ';' + (i + 3).ToString() + '|' + messageID)
+							}
+						);
+					}
+					var inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboardList);
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "2 / ... .\nТвой возраст:",
+                        "2 / ... \nТвой возраст:",
                         inlineKeyboard
 					);
                     // sends commands that will be available only on the next stage
@@ -261,38 +248,31 @@ namespace BotModes {
 					tempBody = "3;" + bodyList[1] + ';' + bodyList[2]; // guarantees the next stage. Now this variable is used as a temporary string.
 					if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[2]} years old");
                     // sends commands that will be available only on the next stage
-                    var inlineKeyboard = new InlineKeyboardMarkup(
-                        new List<InlineKeyboardButton[]>() {
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Нулевой: Знаю пару слов максимум😜", tempBody + ";0|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("A1: Могу делать простые предложения🎩", tempBody + ";A1|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("A2: Могу рассказать, что делаю по жизни", tempBody + ";A2|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("B1: Могу легко делиться мнением / хобби", tempBody + ";B1|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("B2: Могу легко общаться на разные темы", tempBody + ";B2|" + messageID),
-                            },
-                            new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("C1: Могу изъясняться легко и спонтанно💅", tempBody + ";C1|" + messageID),
-                            },
-                        }
-                    );
+                    String[] levelsDescription = new String[] {
+						"Нулевой: Знаю пару слов максимум😜",
+						"A1: Могу делать простые предложения🎩",
+						"A2: Могу рассказать, что делаю по жизни",
+						"B1: Могу легко делиться мнением / хобби",
+						"B2: Могу легко общаться на разные темы",
+						"C1: Могу изъясняться легко и спонтанно💅",
+					};
+					var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
+					for (int i = 0; i < 6; ++i)
+						inlineKeyboardList.Add(new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData(levelsDescription[i] , tempBody + ';' + i.ToString() + '|' + messageID)
+							}
+						);
+                    var inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboardList);
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "3 / ... .\nТвой уровень владения языком:",
+                        "3 / ... \nТвой уровень владения языком:",
                         inlineKeyboard
 					);
                     break;
                 };
 				case '3': {
-                    Console.WriteLine($"User {usernameTemp} has {bodyList[3]} level knowledge about English.");
+                    Console.WriteLine($"User {usernameTemp} has {(proficiencyLevels)short.Parse(bodyList[3])} level knowledge about English.");
 					tempBody = "4;" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3]; // guarantees the next stage. Now this variable is used as a temporary string.
                     var inlineKeyboard = new InlineKeyboardMarkup(
                         new List<InlineKeyboardButton[]>() {
@@ -307,7 +287,7 @@ namespace BotModes {
                     commands.updateInlineMessage(
 						chatIdTemp,
 						int.Parse(messageID),
-                        "4 / ... .\nКакого формата предпочтёшь встречи?",
+                        "4 / ... \nКакого формата предпочтёшь встречи?",
                         inlineKeyboard
 					);
 					break;
@@ -326,28 +306,21 @@ namespace BotModes {
 					String msgText = "";
 					switch (bodyList[4]) {
 						case "OFFLINE": {
-							msgText = "Твой выбор: оффлайн встречи.\nГде ты предпочтёшь встречаться?";
-							options[0][0] = "В здании церкви"; // TODO: Добавить адрес при получении разрешения
-							options[0][1] = "CHURCH";
-							//options[2][0] = "в здании СГУ (12й корпус)"; // NOTE: Я не знаю, буду ли это добавлять
-							//options[2][1] = "SSU12D";
-							options[1][0] = "Тайм-кафе (дружба, лофт и другие)";
-							options[1][1] = "TIME-CAFE";
-							options[2][0] = "TEMPORARY UNAVAILABLE"; // FIX: Заменить либо на СГУ, либо на что-то другое нейтральное
-							options[2][1] = "NONE";
+							msgText = "4 / ... \nТвой выбор: оффлайн встречи.\nГде ты предпочтёшь встречаться?";
+							options[0] = new String[] {"В здании церкви", "CHURCH"}; // TODO: Добавить адрес при получении разрешения
+							options[1] = new String[] {"Тайм-кафе (дружба, лофт и другие)", "TIME-CAFE"};
+							options[2] = new String[] {"TEMPORARY UNAVAILABLE", "NONE"}; // FIX: Заменить либо на СГУ, либо на что-то другое нейтральное
 							break;
 						}
 						case "ONLINE": {
 							msgText = "Твой выбор: онлайн встречи.\nГде ты предпочтёшь созваниваться?";
-							options[0][0] = "в Telegram";
-							options[0][1] = "TELEGRAM";
-							options[1][0] = "в Discord"; 
-							options[1][1] = "DISCORD";
-							options[2][0] = "в VK";
-							options[2][1] = "VK";
+							options[0] = new String[] {"в Telegram", "TELEGRAM"};
+							options[1] = new String[] {"в Discord", "DISCORD"};
+							options[2] = new String[] {"в VK", "VK"};
 							break;
 					    }
 						// In these two cases the bot asks the user to write their own idea (sends a message and saves its id) (less than 20 symbols)
+						// FIX: these two don't work at the moment
 						case "OFFLINE:OTHER": {
 							var msg = commands.sendMsg(
 									chatIdTemp,
@@ -389,15 +362,15 @@ namespace BotModes {
 					break;
 				}
 				case '5': {
-					String msgText = "5 / ...: Что хочешь видеть на встречах клуба?";
+					String msgText = "5 / ... \nЧто хочешь видеть на встречах клуба?";
 					// the first one is the visible text, the second - its code
 					String[][] options = new String[][] {
-						new String [] {"Настольные игры", "BOARDGAMES"},
-						new String [] {"Видеоигры", "VIDEOGAMES"},
-						new String [] {"Книги", "BOOKS"},
-						new String [] {"ИБДН", "BSFNR"},
-						new String [] {"Еда", "FOOD"},
-						new String [] {"Структурированный материал", "STRUCTUREDMATERIALS"},
+						new String [] {"Настольные игры🎲", "BOARDGAMES"},
+						new String [] {"Видеоигры🎮", "VIDEOGAMES"},
+						new String [] {"Книги📚", "BOOKS"},
+						new String [] {"ИБДН📖", "BSFNR"},
+						new String [] {"Еда🥗", "FOOD"},
+						new String [] {"Структурированный материал🧑🏻‍🎓", "STRUCTUREDMATERIALS"},
 						new String [] {"Свой вариант (ложит процесс)", "CUSTOM"}, // потенциальное решение: закэшировать весь код и отправить его в следующем сообщении бота, дождаться ответа юзера и после удалить оба сообщения, декэшировать и вернуть выбор
 						new String [] {"Следующий вопрос", "NEXT"}
 					};
@@ -405,13 +378,17 @@ namespace BotModes {
 					short numberOfOptions = 7, chosenMask = 0;
 					if (bodyList.Count() == 6) { // The user is on this stage not for the first time
 						chosenMask = short.Parse(bodyList[5]);
-						if (chosenMask != 0) numberOfOptions = 8; // now we include the 'next question' button
-						if (bodyList.Count() == 7) {// The user is on this stage not for the first time
+						if (chosenMask != 0) {
+							numberOfOptions = 8; // now we include the 'next question' button
 							msgText += "\nТвой выбор: ";
-							for (int i = 0; i < 7; ++i)
-								if (((chosenMask >> i) & 1) == 1) // the option is chosen
-									msgText += ", " + options[i][0];
 						}
+						short counter = 0;
+						for (int i = 0; i < 7; ++i)
+							if (((chosenMask >> i) & 1) == 1) { // the option is chosen
+								++counter;
+								msgText += ((counter != 1) ? ", " : "") + options[i][0];
+							}
+						
 					}
 					// it will have many interest options
 					var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
@@ -451,7 +428,11 @@ namespace BotModes {
 				        inlineKeyboard
 					);
 					break;
-				}
+				};
+				case '6': { // now the user is choosing time
+					//
+					break;
+				};
                 default: {
                     commands.sendMsg(
                         chatIdTemp,
