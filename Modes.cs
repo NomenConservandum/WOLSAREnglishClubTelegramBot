@@ -316,29 +316,35 @@ namespace BotModes {
 					//
 					tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":"; // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
                     Console.WriteLine($"User {usernameTemp} has chosen {bodyList[4]} meetings.");
-					String[] optionText = {"", "", ""}, optionCode = {"", "", ""}; // I'm very sorry for this dumb and straightforward code, I don't know how to do better
+					// the first one is the visible text, the second - its code
+					String[][] options = new String[][] {
+						new String [] {"", ""},
+						new String [] {"", ""},
+						new String [] {"", ""},
+						new String [] {"Свой вариант (Баг: обнуляет прогресс)", '4' + tempBody + "OTHER|" + messageID},
+					};
 					String msgText = "";
 					switch (bodyList[4]) {
 						case "OFFLINE": {
 							msgText = "Твой выбор: оффлайн встречи.\nГде ты предпочтёшь встречаться?";
-							optionText[0] = "В здании церкви"; // TODO: Добавить адрес при получении разрешения
-							optionCode[0] = "CHURCH";
-							//optionText[2] = "в здании СГУ (12й корпус)"; // NOTE: Я не знаю, буду ли это добавлять
-							//optionCode[2] = "SSU12D";
-							optionText[1] = "Тайм-кафе (дружба, лофт и другие)";
-							optionCode[1] = "TIME-CAFE";
-							optionText[2] = "TEMPORARY UNAVAILABLE"; // FIX: Заменить либо на СГУ, либо на что-то другое нейтральное
-							optionCode[2] = "NONE";
+							options[0][0] = "В здании церкви"; // TODO: Добавить адрес при получении разрешения
+							options[0][1] = "CHURCH";
+							//options[2][0] = "в здании СГУ (12й корпус)"; // NOTE: Я не знаю, буду ли это добавлять
+							//options[2][1] = "SSU12D";
+							options[1][0] = "Тайм-кафе (дружба, лофт и другие)";
+							options[1][1] = "TIME-CAFE";
+							options[2][0] = "TEMPORARY UNAVAILABLE"; // FIX: Заменить либо на СГУ, либо на что-то другое нейтральное
+							options[2][1] = "NONE";
 							break;
 						}
 						case "ONLINE": {
 							msgText = "Твой выбор: онлайн встречи.\nГде ты предпочтёшь созваниваться?";
-							optionText[0] = "в Telegram";
-							optionCode[0] = "TELEGRAM";
-							optionText[1] = "в Discord"; 
-							optionCode[1] = "DISCORD";
-							optionText[2] = "в VK";
-							optionCode[2] = "VK";
+							options[0][0] = "в Telegram";
+							options[0][1] = "TELEGRAM";
+							options[1][0] = "в Discord"; 
+							options[1][1] = "DISCORD";
+							options[2][0] = "в VK";
+							options[2][1] = "VK";
 							break;
 					    }
 						// In these two cases the bot asks the user to write their own idea (sends a message and saves its id) (less than 20 symbols)
@@ -360,31 +366,17 @@ namespace BotModes {
 
 					String BaseString = '5' + tempBody + "CODE|" + messageID;
 			        
-					var inlineKeyboardList =
-						new List<InlineKeyboardButton[]>() {
-		                    new InlineKeyboardButton[] {
-								InlineKeyboardButton.WithCallbackData("...", "NONE"),
-				            },
-		                    new InlineKeyboardButton[] {
-								InlineKeyboardButton.WithCallbackData("...", "NONE"),
-				            },
-		                    new InlineKeyboardButton[] {
-								InlineKeyboardButton.WithCallbackData("...", "NONE"),
-				            },
-					        new InlineKeyboardButton[] {
-							InlineKeyboardButton.WithCallbackData("Свой вариант (Баг: обнуляет прогресс)", '4' + tempBody + "OTHER|" + messageID),
-							},
-					        //new InlineKeyboardButton[] {
-							//InlineKeyboardButton.WithCallbackData("Следующий вопрос", tempBody + "|" + messageID),
-							//},
-						};
+					var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 					
 					for (int i = 0; i < 3; ++i)
-					    inlineKeyboardList[i][0] =
-							InlineKeyboardButton.WithCallbackData(
-								optionText[i],
-								BaseString.Replace("CODE", optionCode[i])
-							);
+					    inlineKeyboardList.Add(
+							new InlineKeyboardButton[] {
+								InlineKeyboardButton.WithCallbackData(
+									options[i][0],
+									BaseString.Replace("CODE", options[i][1])
+								)
+							}
+						);
 		            
 		            var inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboardList);
 					
@@ -398,6 +390,7 @@ namespace BotModes {
 				}
 				case '5': {
 					String msgText = "5 / ...: Что хочешь видеть на встречах клуба?";
+					// the first one is the visible text, the second - its code
 					String[][] options = new String[][] {
 						new String [] {"Настольные игры", "BOARDGAMES"},
 						new String [] {"Видеоигры", "VIDEOGAMES"},
@@ -424,26 +417,24 @@ namespace BotModes {
 					var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 					
 					for (short i = 0; i < numberOfOptions; ++i) {
-						String resultString = "";
-						if (((chosenMask >> i) & 1) == 0 && i != 7) // check if the user hasn't chosen this particular option
-							resultString += "5;";
-						if (i == 7) { // let's check for the 'next' button first
-							resultString += "6;";
-						}
+						String resultString = "5;";
+						if (i == 7) // everything but the 'next' button doesn't change the stage
+							resultString = "6;";
+						
 						short tempMask = chosenMask;
 						// now let's make a proper string: if it was chosen already, it should be removed, if not, it should be added
-						if (((chosenMask >> i) & 1) == 1) { // the option is chosen and add the 'Убрать выбор' text
-							tempMask &= (short)~(1 << i); // we remove the option as being chosen from the mask for the particular button
+						if (((chosenMask >> i) & 1) == 1) { // the option is chosen: remove it from the mask, add the 'uncheck' text
+							tempMask &= (short)~(1 << i); // we remove the option as being chosen from the mask for this particular button
 							options[i][0] += " (убрать выбор)";
-							resultString += "5;"; // HACK: I guess this system is absolete: I can just split the string and look how many parts are there.
-						} else { // add the option
+						} else // add the option
 							tempMask |= (short)(1 << i); // we add the option to the mask for the particular button
-						}
+						
 						// merge the body into one string
 						for (int j = 1; j < 5; ++j)
 							resultString += bodyList[j] + ';';
 						resultString += tempMask.ToString() + '|' + messageID;
 						
+						// Now we add each button to the inlineKeyboardList
 						inlineKeyboardList.Add(
 							new InlineKeyboardButton[] {
 								InlineKeyboardButton.WithCallbackData(options[i][0], resultString)
