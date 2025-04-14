@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 
 namespace DBController { // Proper DataBase Class
-    public enum proficiencyLevels {
+	public enum proficiencyLevels {
         zero,
         A1,
         A2,
@@ -33,6 +33,24 @@ namespace DBController { // Proper DataBase Class
       Offline,
       Online
     }
+	public enum Days {
+		Monday,
+		Tuesday,
+		Wednesday,
+		Thursday,
+		Friday,
+		Saturday,
+        Sunday
+	}
+    public enum DaysRussian {
+		Понедельник,
+		Вторник,
+		Среда,
+		Четверг,
+		Пятница,
+		Суббота,
+		Воскресенье
+	}
     // The fill-out form Class for the participants
     public class FillOutFormParticipants {
         public Genders sex = Genders.Male;
@@ -40,7 +58,7 @@ namespace DBController { // Proper DataBase Class
         public Formats format = Formats.Offline;
         public proficiencyLevels languageProficiency = proficiencyLevels.A1;
         public String conductor = ""; // place or the messenger
-        public String time = ""; // the format: "Monday: hour1_1, hour1_2, ...&Tuesday: hour2_1, hour2_2, ... &... &Sunday: hour7_1, hour7_2, ..."
+        public String time = ""; // the format: "Monday:hourMask,Tuesday:hourMask,...,Sunday:hourMask"
         public int duration = 60; // in minutes
         public Boolean notifications = true;
         public long interestsMask = 0; // a bit mask of interests: board games, video games, books reading, BSFN in English, food, lectures, tests, other options

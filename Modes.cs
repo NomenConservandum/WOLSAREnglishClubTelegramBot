@@ -374,7 +374,6 @@ namespace BotModes {
 						new String [] {"Свой вариант (ложит процесс)", "CUSTOM"}, // потенциальное решение: закэшировать весь код и отправить его в следующем сообщении бота, дождаться ответа юзера и после удалить оба сообщения, декэшировать и вернуть выбор
 						new String [] {"Следующий вопрос", "NEXT"}
 					};
-					// I'm very sorry for this dumb and straightforward code, I don't know how to do better
 					short numberOfOptions = 7, chosenMask = 0;
 					if (bodyList.Count() == 6) { // The user is on this stage not for the first time
 						chosenMask = short.Parse(bodyList[5]);
@@ -430,7 +429,26 @@ namespace BotModes {
 					break;
 				};
 				case '6': { // now the user is choosing time
-					//
+					// NOTE: make a module that operates just the same
+					// as the code for the personal interests but has
+					// time stamps, 'inconvenient' and 'the next day
+					// of the week' buttons.
+					
+					String msgText = "6 / ... \nВ какие дни недели тебе бы хотелось посещать клуб?";
+					
+					var inlineKeyboardList = new List<InlineKeyboardButton[]> () {};
+					
+					if (bodyList.Count() == 7) { // The user is on this stage not for the first time
+						var chosenDaysStr = bodyList[6].Split(',');
+						if (chosenDaysStr.Count() != 0) {
+							numberOfOptions = 8; // now we include the 'next question' button
+							msgText += "\nТвой выбор: ";
+						}
+						for (int i = 0; i < 7; ++i)
+							
+					}
+
+					
 					break;
 				};
                 default: {
