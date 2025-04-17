@@ -146,7 +146,7 @@ namespace RegistrationProcessNS {
 								}
 							}
 		
-							String BaseString = '5' + tempBody + ";CODE|" + messageID;
+							String BaseString = '5' + tempBody + ":CODE|" + messageID;
 					        
 							var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 							
@@ -197,25 +197,27 @@ namespace RegistrationProcessNS {
 										++counter;
 										msgText += ((counter != 1) ? ", " : "") + options[i][0];
 									}
+								Array.Resize<String>(ref bodyList, bodyList.Length - 1);
 							}
 							// it will have many interest options
 							var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
-							
+							Console.WriteLine("The mask is: " + chosenMask);
 							for (short i = 0; i < numberOfOptions; ++i) {
+								short tempMask = chosenMask;
 								String resultString = "5";
-								if (i == 7) { // anything but the 'next' button doesn't change the stage
+								if (i == 7) // anything but the 'next' button doesn't change the stage
 									resultString = "6";
-								chosenMask = masks.flipChoise(chosenMask, i);	// we ignore the 'next question' button
+								// tempMask = masks.flipChoise(chosenMask, i);	// we ignore the 'next question' button
 																				// this is why it's gonna be
 																				// ticked and unticked further in the code
-								}
-								short tempMask = chosenMask;
 								// now let's make a proper string: if the option was already chosen, it should be removed, if not, it should be added
-								if (masks.isChosen(chosenMask, i)) // the option is chosen: add the 'untick' text
+								if (masks.isChosen(tempMask, i)) // the option is chosen: add the 'untick' text
 									options[i][0] += " (убрать выбор)";
+								Console.WriteLine("	Before flipping the " + (i + 1).ToString() + "-th mask is: " + tempMask);
 								tempMask = masks.flipChoise(tempMask, i);
+								Console.WriteLine("	The " + (i + 1).ToString() + "-th mask after flipping is: " + tempMask);
 								// merge the body into one string
-								Array.Resize<String>(ref bodyList, bodyList.Length - 1);
+
 								resultString +=
 									commands.mainBodyOnly(bodyList) + ';'
 									+ tempMask.ToString() + '|' + messageID;

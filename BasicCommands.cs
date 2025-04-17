@@ -109,7 +109,7 @@ namespace BasicCommands {
     	}
     	// the indexation starts with 0
     	public short flipChoise(short mask, short i) {
-    		return (short)~((mask) ^ (~mask ^ (short)(1 << i))); // e.g. ~(0100 ^ ~(0001)) = ~(0100 ^ 1110) = ~(1010) = 0101
+    		return (short)(mask ^ (short)(1 << i)); // e.g. ~(0001 ^ ~(0001)) = ~(0001 ^ 1110) = ~(1111) = 0000 OR ~(0100 ^ ~(0001)) = ~(0100 ^ 1110) = ~(1010) = 0101
     	}
     }
 }
