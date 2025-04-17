@@ -32,7 +32,7 @@ namespace RegistrationProcessNS {
 					switch (stage) {
 						case '1': {
 							if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[1]}");
-							tempBody = "2;" + bodyList[1]; // guarantees the next stage. Now this variable is used as a temporary string.
+							tempBody = '2' + commands.mainBodyOnly(bodyList); // guarantees the next stage. Now this variable is used as a temporary string.
 		                    var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 							for (short i = 15; i < 26; i += 4) {
 								inlineKeyboardList.Add(
@@ -55,7 +55,7 @@ namespace RegistrationProcessNS {
 		                    break;
 		                };
 						case '2': {
-							tempBody = "3;" + bodyList[1] + ';' + bodyList[2]; // guarantees the next stage. Now this variable is used as a temporary string.
+							tempBody = '3' + commands.mainBodyOnly(bodyList); // guarantees the next stage. Now this variable is used as a temporary string.
 							if (DEBUG) Console.WriteLine($"User {usernameTemp} is {bodyList[2]} years old");
 		                    // sends commands that will be available only on the next stage
 		                    String[] levelsDescription = new String[] {
@@ -83,8 +83,8 @@ namespace RegistrationProcessNS {
 		                };
 						case '3': {
 		                    Console.WriteLine($"User {usernameTemp} has {(proficiencyLevels)short.Parse(bodyList[3])} level knowledge about English.");
-							tempBody = "4;" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3]; // guarantees the next stage. Now this variable is used as a temporary string.
-		                    var inlineKeyboard = new InlineKeyboardMarkup(
+							tempBody = '4' + commands.mainBodyOnly(bodyList); // guarantees the next stage. Now this variable is used as a temporary string.
+							var inlineKeyboard = new InlineKeyboardMarkup(
 		                        new List<InlineKeyboardButton[]>() {
 		                            new InlineKeyboardButton[] {
 		                            InlineKeyboardButton.WithCallbackData("Оффлайн", tempBody + ";OFFLINE|" + messageID),
@@ -103,8 +103,7 @@ namespace RegistrationProcessNS {
 							break;
 						}
 						case '4': {
-							//
-							tempBody = ";" + bodyList[1] + ';' + bodyList[2] + ';' + bodyList[3] + ';' + bodyList[4] + ":"; // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
+							tempBody = commands.mainBodyOnly(bodyList); // Does NOT guarantee the next stage. Now this variable is used as a temporary string.
 		                    Console.WriteLine($"User {usernameTemp} has chosen {bodyList[4]} meetings.");
 							// the first one is the visible text, the second - its code
 							String[][] options = new String[][] {
@@ -147,7 +146,7 @@ namespace RegistrationProcessNS {
 								}
 							}
 		
-							String BaseString = '5' + tempBody + "CODE|" + messageID;
+							String BaseString = '5' + tempBody + ";CODE|" + messageID;
 					        
 							var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 							
@@ -172,6 +171,7 @@ namespace RegistrationProcessNS {
 							break;
 						}
 						case '5': {
+							maskManipulation masks = new maskManipulation();
 							String msgText = "5 / ... \nЧто хочешь видеть на встречах клуба?";
 							// the first one is the visible text, the second - its code
 							String[][] options = new String[][] {
@@ -192,33 +192,33 @@ namespace RegistrationProcessNS {
 									msgText += "\nТвой выбор: ";
 								}
 								short counter = 0;
-								for (int i = 0; i < 7; ++i)
-									if (((chosenMask >> i) & 1) == 1) { // the option is chosen
+								for (short i = 0; i < 7; ++i)
+									if (masks.isChosen(chosenMask, i)) { // the option is chosen
 										++counter;
 										msgText += ((counter != 1) ? ", " : "") + options[i][0];
 									}
-								
 							}
 							// it will have many interest options
 							var inlineKeyboardList = new List<InlineKeyboardButton[]>() {};
 							
 							for (short i = 0; i < numberOfOptions; ++i) {
-								String resultString = "5;";
-								if (i == 7) // everything but the 'next' button doesn't change the stage
-									resultString = "6;";
-								
+								String resultString = "5";
+								if (i == 7) { // anything but the 'next' button doesn't change the stage
+									resultString = "6";
+								chosenMask = masks.flipChoise(chosenMask, i);	// we ignore the 'next question' button
+																				// this is why it's gonna be
+																				// ticked and unticked further in the code
+								}
 								short tempMask = chosenMask;
-								// now let's make a proper string: if it was chosen already, it should be removed, if not, it should be added
-								if (((chosenMask >> i) & 1) == 1) { // the option is chosen: remove it from the mask, add the 'uncheck' text
-									tempMask &= (short)~(1 << i); // we remove the option as being chosen from the mask for this particular button
+								// now let's make a proper string: if the option was already chosen, it should be removed, if not, it should be added
+								if (masks.isChosen(chosenMask, i)) // the option is chosen: add the 'untick' text
 									options[i][0] += " (убрать выбор)";
-								} else // add the option
-									tempMask |= (short)(1 << i); // we add the option to the mask for the particular button
-								
+								tempMask = masks.flipChoise(tempMask, i);
 								// merge the body into one string
-								for (int j = 1; j < 5; ++j)
-									resultString += bodyList[j] + ';';
-								resultString += tempMask.ToString() + '|' + messageID;
+								Array.Resize<String>(ref bodyList, bodyList.Length - 1);
+								resultString +=
+									commands.mainBodyOnly(bodyList) + ';'
+									+ tempMask.ToString() + '|' + messageID;
 								
 								// Now we add each button to the inlineKeyboardList
 								inlineKeyboardList.Add(

@@ -93,5 +93,23 @@ namespace BasicCommands {
             data[2] = chatIdTemp.ToString();
             return data;
         }
+        // returns the body of the registration form string. Lacks the first ('stage') field
+        public String mainBodyOnly(String[] bodyList) {
+			String resultString = "";
+        	for (int i = 1; i < bodyList.Count(); ++i) {
+        		resultString += ';' + bodyList[i];
+        	}
+        	return resultString;
+        }
+    }
+    public class maskManipulation() {
+    	// public maskManipulation() {}
+    	public bool isChosen(short mask, short i) {
+    		return (((mask >> i) & 1) == 1);
+    	}
+    	// the indexation starts with 0
+    	public short flipChoise(short mask, short i) {
+    		return (short)~((mask) ^ (~mask ^ (short)(1 << i))); // e.g. ~(0100 ^ ~(0001)) = ~(0100 ^ 1110) = ~(1010) = 0101
+    	}
     }
 }
