@@ -207,15 +207,10 @@ namespace RegistrationProcessNS {
 								String resultString = "5";
 								if (i == 7) // anything but the 'next' button doesn't change the stage
 									resultString = "6";
-								// tempMask = masks.flipChoise(chosenMask, i);	// we ignore the 'next question' button
-																				// this is why it's gonna be
-																				// ticked and unticked further in the code
 								// now let's make a proper string: if the option was already chosen, it should be removed, if not, it should be added
 								if (masks.isChosen(tempMask, i)) // the option is chosen: add the 'untick' text
 									options[i][0] += " (убрать выбор)";
-								Console.WriteLine("	Before flipping the " + (i + 1).ToString() + "-th mask is: " + tempMask);
 								tempMask = masks.flipChoise(tempMask, i);
-								Console.WriteLine("	The " + (i + 1).ToString() + "-th mask after flipping is: " + tempMask);
 								// merge the body into one string
 
 								resultString +=
