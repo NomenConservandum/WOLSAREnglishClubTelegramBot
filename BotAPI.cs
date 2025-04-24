@@ -32,26 +32,32 @@ namespace BotAPI {
         try {
             Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
             Users foundUser = DB.findByUsername(usernameTemp);
-            if (foundUser.getStatus() == Statuses.newcomer) { // The user is already in the DB
-                modes.newcomerMode(
-                    update,
-                    usernameTemp, msgTextTemp, chatIdTemp,
-                    commands, DB
-                );
-            } else if (foundUser.getStatus() == Statuses.inregprocCustomer) {
-                // Console.WriteLine($"User {usernameTemp}: registering as a participant");
-				modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
-			} else if (foundUser.getStatus() == Statuses.inregprocMinister) {
-                // Nothing here yet
-                // Console.WriteLine($"User {usernameTemp}: registering as a minister");
-            }
-            else if (foundUser.isValid() == false) { // The user has met the bot for the first time
+            if (!foundUser.isValid()) { // The user has met the bot for the first time
                 // The 'first encounter' mode
                 modes.FirstEncounter(
                     update,
                     usernameTemp, msgTextTemp, chatIdTemp,
                     commands, DB
                 );
+                return;
+            }
+            // The user is already in the DB
+            switch (foundUser.getStatus()) {
+                case Statuses.newcomer:
+                    modes.newcomerMode(
+                        update,
+                        usernameTemp, msgTextTemp, chatIdTemp,
+                        commands, DB
+                    );
+                    return;
+                case Statuses.inregprocCustomer:
+                    // Console.WriteLine($"User {usernameTemp}: registering as a participant");
+                    modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
+                    return;
+                case Statuses.inregprocMinister:
+                    return;
+                default:
+                    return;
             }
         }
         catch (Exception ex) {
