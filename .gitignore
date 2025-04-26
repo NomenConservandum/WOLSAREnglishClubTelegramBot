@@ -1,5 +1,5 @@
 sensitive.cs
 bin/
 obj/
-*.sln
-MainDataBase.db
+*.db
+.vs/

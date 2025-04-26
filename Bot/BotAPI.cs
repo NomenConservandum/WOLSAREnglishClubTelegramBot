@@ -3,20 +3,16 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Exceptions;
-using Sensitive;
-using BasicCommands;
-using DBController;
-using BotModes;
+using DBEssentials;
 
-namespace BotAPI {
-    public class Bot {
+public class Bot {
     private static ITelegramBotClient? botClient;
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
     private static Commands commands = new Commands();
     private static DBApi DB = new DBApi();
     private static Modes modes = new Modes();
-    public static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
+    public static async Task UpdateHandler (ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
         String usernameTemp = "", msgTextTemp = "";
         long chatIdTemp = 0;
         {
@@ -43,18 +39,18 @@ namespace BotAPI {
             }
             // The user is already in the DB
             switch (foundUser.getStatus()) {
-                case Statuses.newcomer:
-                    modes.newcomerMode(
+                case Statuses.AwaitingRegistrationChoice:
+                    modes.RegistrationChoiceMode(
                         update,
                         usernameTemp, msgTextTemp, chatIdTemp,
                         commands, DB
                     );
                     return;
-                case Statuses.inregprocCustomer:
+                case Statuses.ARCCustomer:
                     // Console.WriteLine($"User {usernameTemp}: registering as a participant");
                     modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
                     return;
-                case Statuses.inregprocMinister:
+                case Statuses.ARCMinister:
                     return;
                 default:
                     return;
@@ -66,7 +62,7 @@ namespace BotAPI {
     }
 
     // Not my code, lol
-    public static Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken) {
+    public static Task ErrorHandler (ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken) {
         // Тут создадим переменную, в которую поместим код ошибки и её сообщение 
         var ErrorMessage = error switch {
             ApiRequestException apiRequestException
@@ -78,17 +74,17 @@ namespace BotAPI {
         return Task.CompletedTask;
     }
     // Not my code block ends
-	
-	public User? getMe() {
-		return botClient?.GetMe().Result;
-	}
+
+    public User? getMe () {
+        return botClient?.GetMe().Result;
+    }
 
     // Should be used with 'await' keyword
     //public System.Threading.Tasks.Task<Telegram.Bot.Types.User> getMe() {
     //    return botClient?.GetMe() ?? new User();
     //}
-    
-    public Bot() {
+
+    public Bot () {
         Variables sensitive = new Variables();
         inviteURL = sensitive.getURL();
         botClient = new TelegramBotClient(sensitive.getToken());
@@ -100,9 +96,9 @@ namespace BotAPI {
             UpdateType.CallbackQuery,
         };
         receiverOptions.DropPendingUpdates = true; // we ignore all of the messages that were sent when the bot was offline
-        
+
         var cts = new CancellationTokenSource();
         botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token); // The bot is online
-        }
     }
+
 }

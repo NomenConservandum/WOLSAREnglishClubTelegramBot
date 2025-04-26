@@ -1,6 +1,9 @@
-﻿// WOLSAR English club Telegram Bot source code
+﻿/// <summary>
+/// WOLSAR English club Telegram Bot
+/// The telegram bot for an English
+/// club on the basis of LROoCoEF WOLSAR
+/// </summary>
 
-using BotAPI;
 
 class Program {
     static async Task Main() {
