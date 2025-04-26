@@ -1,6 +1,13 @@
 
 
-namespace DBEssentials { // Proper DataBase Class
+namespace DBEssentials {
+    public enum UsersFieldsDB {
+        ChatID,
+        Username,
+        Status,
+        Role,
+        GroupChatID,
+    }
 	public enum proficiencyLevels {
         zero,
         A1,

@@ -102,7 +102,7 @@ public class firstEncounter {
 						commands.deleteMessage(chatIdTemp, int.Parse(list[2])); // delete the data transfer agreement message
 							
 							
-						if (DEBUG) Console.WriteLine($"User {usernameTemp}: new status \'Newcomer\'");
+						if (DEBUG) Console.WriteLine($"User {usernameTemp}: new Status \'Newcomer\'");
 						// switches the mode by adding the user to the DB
 						break;
 					}

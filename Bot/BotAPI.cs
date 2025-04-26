@@ -19,7 +19,7 @@ public class Bot {
             String[] data = commands.getDataFromUpdate(update);
             usernameTemp = data[0];
             if (usernameTemp == " ") { // could not parse the username, no need for the further check
-                Console.WriteLine($"ERROR: the username could not be parsed! Update converted to string: {update.ToString()}");
+                Console.WriteLine($"ERROR: the Username could not be parsed! Update converted to string: {update.ToString()}");
                 return;
             }
             msgTextTemp = data[1];
@@ -27,7 +27,7 @@ public class Bot {
         }
         try {
             Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
-            Users foundUser = DB.findByUsername(usernameTemp);
+            Users foundUser = DB.findByField(UsersFieldsDB.Username, usernameTemp);
             if (!foundUser.isValid()) { // The user has met the bot for the first time
                 // The 'first encounter' mode
                 modes.FirstEncounter(
@@ -89,7 +89,7 @@ public class Bot {
         inviteURL = sensitive.getURL();
         botClient = new TelegramBotClient(sensitive.getToken());
         commands = new Commands(botClient);
-        DB = new DBApi(sensitive.getDBName());
+        DB = new DBApi(sensitive.getUDBName(), sensitive.getUDBPassword());
 
         receiverOptions.AllowedUpdates = new[] {
             UpdateType.Message,
