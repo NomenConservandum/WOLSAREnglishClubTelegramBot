@@ -10,7 +10,7 @@ public class Bot {
     private static ReceiverOptions receiverOptions = new ReceiverOptions();
     private static String inviteURL = "";
     private static Commands commands = new Commands();
-    private static DBApi DB = new DBApi();
+    private static DBApi UsersDB = new DBApi();
     private static Modes modes = new Modes();
     public static async Task UpdateHandler (ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
         String usernameTemp = "", msgTextTemp = "";
@@ -27,28 +27,28 @@ public class Bot {
         }
         try {
             Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
-            Users foundUser = DB.findByField(UsersFieldsDB.Username, usernameTemp);
+            BaseDBModel foundUser = UsersDB.findByField(UsersFieldsDB.Username, usernameTemp);
             if (!foundUser.isValid()) { // The user has met the bot for the first time
                 // The 'first encounter' mode
                 modes.FirstEncounter(
                     update,
                     usernameTemp, msgTextTemp, chatIdTemp,
-                    commands, DB
+                    commands, UsersDB
                 );
                 return;
             }
+            Console.WriteLine($"User {usernameTemp} is in DB");
             // The user is already in the DB
             switch (foundUser.getStatus()) {
                 case Statuses.AwaitingRegistrationChoice:
                     modes.RegistrationChoiceMode(
                         update,
                         usernameTemp, msgTextTemp, chatIdTemp,
-                        commands, DB
+                        commands, UsersDB
                     );
                     return;
                 case Statuses.ARCCustomer:
-                    // Console.WriteLine($"User {usernameTemp}: registering as a participant");
-                    modes.inregprocCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
+                    modes.RegistrationCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, UsersDB);
                     return;
                 case Statuses.ARCMinister:
                     return;
@@ -79,17 +79,12 @@ public class Bot {
         return botClient?.GetMe().Result;
     }
 
-    // Should be used with 'await' keyword
-    //public System.Threading.Tasks.Task<Telegram.Bot.Types.User> getMe() {
-    //    return botClient?.GetMe() ?? new User();
-    //}
-
     public Bot () {
         Variables sensitive = new Variables();
         inviteURL = sensitive.getURL();
         botClient = new TelegramBotClient(sensitive.getToken());
         commands = new Commands(botClient);
-        DB = new DBApi(sensitive.getUDBName(), sensitive.getUDBPassword());
+        UsersDB = new DBApi(sensitive.getDBName(DBs.Users), sensitive.getUsersDBPassword());
 
         receiverOptions.AllowedUpdates = new[] {
             UpdateType.Message,

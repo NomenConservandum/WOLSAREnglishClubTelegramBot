@@ -29,14 +29,11 @@ public class DBApi {
             } else {
                 if (DEBUG) Console.WriteLine($"IN PROCESS: THE {DBName} DATABASE AND ITS TABLES ARE BEING CREATED");
                 var command = connection.CreateCommand();
-                command.CommandText =
+                Variables sensitive = new Variables();
+                command.CommandText = 
                 @$"
                     CREATE TABLE {DBName} (
-                        ChatID INTEGER NOT NULL,
-                        Username TEXT NOT NULL,
-                        Status INTEGER NOT NULL,
-                        Role INTEGER NOT NULL,
-                        GroupChatID INTEGER
+                        {sensitive.DBNameToFields(DBName)}
                     );
                 ";
                 command.ExecuteNonQuery();
@@ -47,9 +44,8 @@ public class DBApi {
 
     public DBApi () { }
 
-    // username == "NONE": no such user
-    public Users findByField (UsersFieldsDB fieldName, String value) {
-        Users result = new Users(0, "NONE", Statuses.NONE, Roles.NONE, 0);
+    public BaseDBModel findByField (UsersFieldsDB fieldName, String value) {
+        BaseDBModel result = new BaseDBModel();
         if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"IN PROCESS: in search for the {DBName} by {fieldName.ToString()}: {value}\"");
         
         // open the connection
@@ -57,22 +53,44 @@ public class DBApi {
             connection.Open();
             var command = connection.CreateCommand();
             command.CommandText = @$"SELECT * FROM {DBName} WHERE {fieldName.ToString()} = '{value}'";
-            // there is only one user in the db so it's not gonna be a problem
             
             using (var reader = command.ExecuteReader()) {
-                if (!reader.HasRows) // Literally no user with such username
+                if (!reader.HasRows) // Literally no element with such value
                     return result;
+                if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"RESULT: the {DBName} {value} has been found\"");
 
                 while (reader.Read()) {
-                    long ChatID = reader.GetInt64(0);
-                    String Username = reader.GetString(1);
-                    Statuses Status = (Statuses)reader.GetInt32(2);
-                    Roles Role = (Roles)reader.GetInt32(3);
-                    long GroupChatID = reader.GetInt64(4);
-                    if (Username == value) {
+                    Variables sensitive = new Variables();
+                    if (DBName == sensitive.getDBName(DBs.Users)) { // if it is Users DB
+                        long ChatID = reader.GetInt64(0);
+                        String Username = reader.GetString(1);
+                        Statuses Status = (Statuses)reader.GetByte(2);
+                        Roles Role = (Roles)reader.GetByte(3);
+                        long GroupChatID = reader.GetInt64(4);
                         result = new Users(ChatID, Username, Status, Role, GroupChatID);
-                        if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"RESULT: the user {value} has been found\"");
-                        break; // we can break off early, because there is only one user in the db and we need the first encounter
+                        return result; // we can break off early, because there is only one user in the db and we need the first encounter
+                    } else if (DBName == sensitive.getDBName(DBs.RegistrationForms)) { // if it is Forms DB
+                        String Username = reader.GetString(0);
+                        int Age = reader.GetByte(1);
+                        int Sex = reader.GetByte(2);
+                        proficiencyLevels languageProficiency = (proficiencyLevels)reader.GetByte(3);
+                        int Format = reader.GetByte(4);
+                        int Frequency = reader.GetByte(5);
+                        String Conductor = reader.GetString(6);
+                        String Time = reader.GetString(7);
+                        int Duration = reader.GetByte(8);
+                        Boolean Notifications = reader.GetBoolean(9);
+                        long InterestsMask = reader.GetInt32(10);
+                        String OtherInterests = reader.GetString(11);
+                        result = new FillOutFormParticipants(
+                            Username,
+                            (Genders)Sex, Age,
+                            Frequency, (Formats)Format,
+                            languageProficiency, Conductor,
+                            Time, Duration, Notifications,
+                            InterestsMask, OtherInterests
+                        );
+                        return result; // we can break off early, because there is only one user in the db and we need the first encounter
                     }
                 }
             }

@@ -23,7 +23,7 @@ public class Modes {
 		RegistrationChoiceService mode = new RegistrationChoiceService();
 		mode.StartService(update, usernameTemp, msgTextTemp, chatIdTemp, commands, DB);
     }
-    public void inregprocCustomer(
+    public void RegistrationCustomer(
         Update update,
         String usernameTemp, String msgTextTemp, long chatIdTemp,
         Commands commands, DBApi DB

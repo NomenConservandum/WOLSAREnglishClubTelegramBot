@@ -1,6 +1,8 @@
+using DBEssentials;
+using System;
+using System.Runtime.ConstrainedExecution;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using DBEssentials;
 
 public class RegistrationChoiceService {
     bool DEBUG = true;
@@ -11,6 +13,15 @@ public class RegistrationChoiceService {
         String usernameTemp, String msgTextTemp, long chatIdTemp,
         Commands commands, DBApi DB
     ) {
+        if (msgTextTemp.IndexOf('|') == -1) {
+            commands.sendMsg(
+                chatIdTemp,
+                """
+                Error: unknown command (it may be not available any more)
+                Type /rescue for further help
+                """
+            );
+        }
         var list = msgTextTemp.Split('|');
         String choice = list[0];
         String messageID = list[1];
@@ -62,9 +73,12 @@ public class RegistrationChoiceService {
                 break;
             };
             default: {
-				commands.sendMsg(
+                commands.sendMsg(
                     chatIdTemp,
-                    "Error: unknown command (it may be not available any more)"
+                    """
+                    Error: unknown command (it may be not available any more)
+                    Type /rescue for further help
+                    """
                 );
                 break;
             };

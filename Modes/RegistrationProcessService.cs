@@ -6,12 +6,21 @@ public class RegistrationProcessService {
 	bool DEBUG = true;
 	public RegistrationProcessService () { }
 	public void StartServiceCustomer (
-				Update update,
-				String usernameTemp, String msgTextTemp, long chatIdTemp,
-				Commands commands, DBApi DB
-			) {
-		if (msgTextTemp.Split('|').Count() == 1) {
-			return;
+			Update update,
+			String usernameTemp, String msgTextTemp, long chatIdTemp,
+			Commands commands, DBApi DB
+		) {
+		if (msgTextTemp.IndexOf('|') == -1) {
+            commands.sendMsg(
+                chatIdTemp,
+                """
+                Error: unknown command (it may be not available any more)
+                Type /rescue for further help
+                """
+            );
+            int incomingMessageID = update?.Message?.Id ?? 1;
+            commands.deleteMessage(chatIdTemp, incomingMessageID);
+            return;
 		}
 		var list = msgTextTemp.Split('|');
 		var bodyList = list[0].Split(';');

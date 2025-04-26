@@ -7,10 +7,10 @@ public class firstEncounter {
 	bool DEBUG = true;
 	public firstEncounter () { }
 	public void StartService (
-				Update update,
-				String usernameTemp, String msgTextTemp, long chatIdTemp,
-				Commands commands, DBApi DB
-			) {
+			Update update,
+			String usernameTemp, String msgTextTemp, long chatIdTemp,
+			Commands commands, DBApi DB
+		) {
 		switch (update.Type) {
 			case UpdateType.Message: { // greet the user and suggest them to go through a registration process
 				int incomingMessageID = update?.Message?.Id ?? 1;
