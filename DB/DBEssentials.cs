@@ -1,3 +1,5 @@
+using MySqlX.XDevAPI.Common;
+using Telegram.Bot.Types;
 
 namespace DBEssentials {
     public enum DBs {
@@ -5,15 +7,110 @@ namespace DBEssentials {
         RegistrationForms,
         Feedbacks
     }
+
+    public class DBInfo {
+        private static Dictionary<String, String> NameToFields = new();
+        public DBInfo() {
+            NameToFields[getDBName(DBs.Users)] =
+            """
+                ChatID INTEGER NOT NULL,
+                Username TINYTEXT NOT NULL,
+                Status TINYINT(1) UNSIGNED NOT NULL,
+                Role TINYINT(1) UNSIGNED NOT NULL,
+                GroupChatID INTEGER
+            """;
+
+            NameToFields[getDBName(DBs.RegistrationForms)] =
+            """
+                Username TINYTEXT NOT NULL,
+                Age TINYINT(1) NOT NULL,
+                Sex TINYINT(1) NOT NULL,
+                LanguageProficiency TINYINT(1),
+                Format TINYINT(1) NOT NULL,
+                Frequency TINYINT(1) NOT NULL,
+                Conductor TEXT NOT NULL,
+                Time TEXT NOT NULL,
+                Duration TINYINT(1) NOT NULL,
+                Notifications BOOL NOT NULL,
+                InterestsMask INTEGER NOT NULL,
+                OtherInterests TEXT NOT NULL
+            """;
+            NameToFields[getDBName(DBs.Feedbacks)] =
+            """
+                ID INTEGER NOT NULL AUTO_INCREMENT,
+                username TEXT NOT NULL,
+                Rating TINYINT(1) NOT NULL,
+                Text TEXT NOT NULL,
+                PRIMARY KEY (id)
+            """;
+        }
+        public String DBNameToFields(DBs Name) {
+            return NameToFields[getDBName(Name)];
+        }
+        public String DBNameToFields(String Name) {
+            return NameToFields[Name];
+        }
+        public String getDBName(DBs name) {
+            Variables sensitive = new Variables();
+            return sensitive.getDBName(name);
+        }
+
+        public String elementInsertString(BaseDBModel element) {
+            String result = "";
+            Users user = element as Users ?? new Users();
+            FillOutFormParticipants form = element as FillOutFormParticipants ?? new FillOutFormParticipants();
+            feedbackForm feedback = element as feedbackForm ?? new feedbackForm();
+            if (user != null) { // The element is a user
+                result =
+                    $"""
+                    
+                    VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()});
+                    """;
+            } else if (form != null) { // The element is a form
+                result =
+                    $"""
+                    
+                    VALUES ('{form.getUsername()}', {form.age}, {form.sex}, {(int)form.languageProficiency}, {(int)form.format}, {form.frequency}, '{form.conductor}', '{form.time}', {form.duration}, {form.notifications}, {form.interestsMask}, '{form.otherInterests}');
+                    """;
+            } else if (feedback != null) { // The element is a feedback form
+                result = 
+                    $"""
+                    (username,rating,text)
+                    VALUES ('{feedback.getUsername()}',{feedback.getRating()},{feedback.getText()});
+                    """;
+            }
+            return result;
+        }
+    }
+
     public enum RegistrationFormsFieldsDB {
         None = 0,
     }
-    public enum UsersFieldsDB {
+    public enum FieldsDB {
+        // Users DB fields
         ChatID,
         Username,
         Status,
         Role,
         GroupChatID,
+        // Registration Forms DB fields
+     // Username is already here
+        Age,
+        Sex,
+        LanguageProficiency,
+        Format,
+        Frequency,
+        Conductor,
+        Time,
+        Duration,
+        Notifications,
+        InterestsMask,
+        OtherInterests,
+        // Feedbacks DB fields
+        ID,
+     // Username is already here
+        Rating,
+        Text
     }
 	public enum proficiencyLevels {
         zero,
@@ -138,6 +235,7 @@ namespace DBEssentials {
         long chatID, groupChatID;
         Statuses status;
         Roles role;
+        public Users() { }
         public long getChatID() {
             return chatID;
         }
@@ -177,6 +275,39 @@ namespace DBEssentials {
                 return false;
             return true;
         }
+    }
+
+    public class feedbackForm : BaseDBModel {
+        private long id = 0, rating = 0;
+        private String text = "";
+        public feedbackForm() { }
+        public feedbackForm(long id, String username, long rating, String text) : base(username) {
+            this.id = id;
+            this.rating = rating;
+            this.text = text;
+        }
+        public long getId() {
+            return id;
+        }
+        public String getText() {
+            return text;
+        }
+        public long getRating() {
+            return rating;
+        }
+        public void setRating(long rating) {
+            this.rating = rating;
+        }
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public override bool isValid() {
+            if (id == 0)
+                return false;
+            return true;
+        }
+
     }
 
 }

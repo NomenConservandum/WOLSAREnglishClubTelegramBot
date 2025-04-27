@@ -11,6 +11,8 @@ public class Bot {
     private static String inviteURL = "";
     private static Commands commands = new Commands();
     private static DBApi UsersDB = new DBApi();
+    private static DBApi RegFormsDB = new DBApi();
+    private static DBApi FeedbacksDB = new DBApi();
     private static Modes modes = new Modes();
     public static async Task UpdateHandler (ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
         String usernameTemp = "", msgTextTemp = "";
@@ -27,7 +29,7 @@ public class Bot {
         }
         try {
             Console.WriteLine($"User {usernameTemp}: \"{msgTextTemp}\" ");
-            BaseDBModel foundUser = UsersDB.findByField(UsersFieldsDB.Username, usernameTemp);
+            BaseDBModel foundUser = UsersDB.findByField(FieldsDB.Username, usernameTemp);
             if (!foundUser.isValid()) { // The user has met the bot for the first time
                 // The 'first encounter' mode
                 modes.FirstEncounter(
@@ -48,7 +50,11 @@ public class Bot {
                     );
                     return;
                 case Statuses.ARCCustomer:
-                    modes.RegistrationCustomer(update, usernameTemp, msgTextTemp, chatIdTemp, commands, UsersDB);
+                    modes.RegistrationCustomer(
+                        update,
+                        usernameTemp, msgTextTemp, chatIdTemp,
+                        commands, UsersDB
+                    );
                     return;
                 case Statuses.ARCMinister:
                     return;
@@ -84,7 +90,10 @@ public class Bot {
         inviteURL = sensitive.getURL();
         botClient = new TelegramBotClient(sensitive.getToken());
         commands = new Commands(botClient);
-        UsersDB = new DBApi(sensitive.getDBName(DBs.Users), sensitive.getUsersDBPassword());
+
+        UsersDB = new DBApi(sensitive.getDBName(DBs.Users), sensitive.getDBPassword(DBs.Users));
+        RegFormsDB = new DBApi(sensitive.getDBName(DBs.RegistrationForms), sensitive.getDBPassword(DBs.RegistrationForms));
+        FeedbacksDB = new DBApi(sensitive.getDBName(DBs.Feedbacks), sensitive.getDBPassword(DBs.Feedbacks));
 
         receiverOptions.AllowedUpdates = new[] {
             UpdateType.Message,
