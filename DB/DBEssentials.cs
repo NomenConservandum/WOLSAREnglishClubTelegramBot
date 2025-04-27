@@ -33,12 +33,13 @@ namespace DBEssentials {
                 Duration TINYINT(1) NOT NULL,
                 Notifications BOOL NOT NULL,
                 InterestsMask INTEGER NOT NULL,
-                OtherInterests TEXT NOT NULL
+                OtherInterests TEXT NOT NULL,
+                Stage TINYINT(1) NOT NULL
             """;
             NameToFields[getDBName(DBs.Feedbacks)] =
             """
                 ID INTEGER NOT NULL AUTO_INCREMENT,
-                username TEXT NOT NULL,
+                Username TEXT NOT NULL,
                 Rating TINYINT(1) NOT NULL,
                 Text TEXT NOT NULL,
                 PRIMARY KEY (id)
@@ -60,23 +61,60 @@ namespace DBEssentials {
             Users user = element as Users ?? new Users();
             FillOutFormParticipants form = element as FillOutFormParticipants ?? new FillOutFormParticipants();
             feedbackForm feedback = element as feedbackForm ?? new feedbackForm();
-            if (user != null) { // The element is a user
+            if (user.isValid()) { // The element is a user
                 result =
                     $"""
                     
                     VALUES ({user.getChatID()}, '{user.getUsername()}', {(int)user.getStatus()}, {(int)user.getRole()}, {user.getGroupChatID()});
                     """;
-            } else if (form != null) { // The element is a form
+            } else if (form.isValid()) { // The element is a form
                 result =
                     $"""
                     
-                    VALUES ('{form.getUsername()}', {form.age}, {form.sex}, {(int)form.languageProficiency}, {(int)form.format}, {form.frequency}, '{form.conductor}', '{form.time}', {form.duration}, {form.notifications}, {form.interestsMask}, '{form.otherInterests}');
+                    VALUES (
+                    '{form.getUsername()}',
+                    {form.age},
+                    {(int)form.sex},
+                    {(int)form.languageProficiency},
+                    {(int)form.format},
+                    {form.frequency},
+                    '{form.conductor}',
+                    '{form.time}',
+                    {form.duration},
+                    {form.notifications},
+                    {form.interestsMask},
+                    '{form.otherInterests}',
+                    {(int)form.stage});
                     """;
-            } else if (feedback != null) { // The element is a feedback form
+            } else if (feedback.isValid()) { // The element is a feedback form
                 result = 
                     $"""
-                    (username,rating,text)
-                    VALUES ('{feedback.getUsername()}',{feedback.getRating()},{feedback.getText()});
+                    (Username,Rating,Text)
+                    VALUES ('{feedback.getUsername()}',{feedback.getRating()},'{feedback.getText()}');
+                    """;
+            }
+            return result;
+        }
+
+        public String elementUpdateString(BaseDBModel element) {
+            String result = "";
+            Users user = element as Users ?? new Users();
+            FillOutFormParticipants form = element as FillOutFormParticipants ?? new FillOutFormParticipants();
+            feedbackForm feedback = element as feedbackForm ?? new feedbackForm();
+            if (user.isValid()) { // The element is a user
+                result =
+                    $"""
+                    SET Status = {(int)user.getStatus()}, Role = {(int)user.getRole()}, GroupChatID = {user.getGroupChatID()}
+                    """;
+            } else if (form.isValid()) { // The element is a form
+                result =
+                    $"""
+                    SET Age = {form.age}, Sex = {(int)form.sex}, LanguageProficiency = {(int)form.languageProficiency}, Format = {(int)form.format}, Frequency = {form.frequency}, Conductor = '{form.conductor}', Time = '{form.time}', Duration = {form.duration}, Notifications = {form.notifications}, InterestsMask = {form.interestsMask}, OtherInterests = '{form.otherInterests}', Stage = {(int)form.stage}
+                    """;
+            } else if (feedback.isValid()) { // The element is a feedback form
+                result =
+                    $"""
+                    SET Rating = {feedback.getRating()}, Text = {feedback.getText()}
                     """;
             }
             return result;
@@ -165,15 +203,17 @@ namespace DBEssentials {
 	}
     public enum RegistrationStatuses {
         NONE,
+        AwaitingRoleChoice,
+        AwaitingSexChoice,
         AwaitingAgeChoice,
-        AwaitingRating,
-        AwaitingFeedback,
-        AwaitingContactRequest,
-        inregprocMinister,  // inregproc: in registration process
-        inregprocCustomer,
-        inQueue,            // a participant who waits to be assigned to a small group
-        inLearningProc,     // a participant who is assigned to a small group. When small group is terminated the customer gets the 'none' role.
-        done                // if the customer has the 'done' status they will be asked if they want to terminate the service
+        AwaitingLevelChoice,
+        AwaitingFormatChoice,
+        AwaitingConductorChoice,
+        AwaitingConductorResponse, // a user proposes their own idea
+        InterestsChoice,
+        AwaitingInterestsChoice,
+        AwaitingInterestsResponse, // a user writes their own interests
+        AwaitingTimeChoice,
     }
     public class BaseDBModel {
         String username = "";
@@ -205,6 +245,7 @@ namespace DBEssentials {
         public Boolean notifications = true;
         public long interestsMask = 0; // a bit mask of interests: board games, video games, books reading, BSFN in English, food, lectures, tests, other options
         public String otherInterests = "";
+        public RegistrationStatuses stage = RegistrationStatuses.NONE;
         public FillOutFormParticipants() {}
         public FillOutFormParticipants (
             String username,
@@ -213,7 +254,8 @@ namespace DBEssentials {
             proficiencyLevels languageProficiency,
             String conductor, String time,
             int duration, Boolean notifications,
-            long interestsMask, String otherInterests
+            long interestsMask, String otherInterests,
+            RegistrationStatuses stage
         ) : base(username) {
             this.sex = sex;
             this.age = age;
@@ -226,13 +268,14 @@ namespace DBEssentials {
             this.notifications = notifications;
             this.interestsMask = interestsMask;
             this.otherInterests = otherInterests;
+            this.stage = stage;
         }
         new public bool isValid () {
-            return duration != -1;
+            return (int)stage != 0;
         }
     }
     public class Users : BaseDBModel {
-        long chatID, groupChatID;
+        long chatID = 0, groupChatID = 0;
         Statuses status;
         Roles role;
         public Users() { }
@@ -271,7 +314,7 @@ namespace DBEssentials {
         }
         // Checks if the user is valid. Not valid user means the user was not found.
         public override bool isValid() {
-            if (chatID == 0 && this.getUsername() == "")
+            if (chatID == 0 || this.getUsername() == "")
                 return false;
             return true;
         }

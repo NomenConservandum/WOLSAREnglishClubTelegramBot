@@ -44,6 +44,7 @@ public class DBApi {
 
     public DBApi () { }
 
+    // PLEASE add singular quotation marks if a string
     public BaseDBModel findByField (FieldsDB fieldName, String value) {
         BaseDBModel result = new BaseDBModel();
         if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"IN PROCESS: in search for the {DBName} by {fieldName.ToString()}: {value}\"");
@@ -52,7 +53,7 @@ public class DBApi {
         using (var connection = new MySqlConnection(MSQLConnectionString)) {
             connection.Open();
             var command = connection.CreateCommand();
-            command.CommandText = @$"SELECT * FROM {DBName} WHERE {fieldName.ToString()} = '{value}'";
+            command.CommandText = @$"SELECT * FROM {DBName} WHERE {fieldName.ToString()} = {value}";
             
             using (var reader = command.ExecuteReader()) {
                 if (!reader.HasRows) // Literally no element with such value
@@ -83,6 +84,7 @@ public class DBApi {
                         Boolean Notifications = reader.GetBoolean(9);
                         long InterestsMask = reader.GetInt32(10);
                         String OtherInterests = reader.GetString(11);
+                        int Stage = reader.GetByte(12);
 
                         result = new FillOutFormParticipants(
                             Username,
@@ -90,7 +92,8 @@ public class DBApi {
                             Frequency, (Formats)Format,
                             languageProficiency, Conductor,
                             Time, Duration, Notifications,
-                            InterestsMask, OtherInterests
+                            InterestsMask, OtherInterests,
+                            (RegistrationStatuses)Stage
                         );
                         return result; // we can break off early, because there is only one user in the db and we need the first encounter
                     } else if (DBName == variables.getDBName(DBs.Feedbacks)) {
@@ -113,7 +116,7 @@ public class DBApi {
     public bool Add (BaseDBModel element) {
         if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"IN PROCESS: adding {DBName} {element.getUsername()} to the DataBase\"");
         DEBUG = !DEBUG;
-        if (findByField(FieldsDB.Username, element.getUsername()).isValid()) {
+        if (findByField(FieldsDB.Username, '\'' + element.getUsername() + '\'').isValid()) {
             DEBUG = !DEBUG;
             if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"RESULT: the element {element.getUsername()} is already in the DataBase\"");
                 return true; // there is already such an element!
@@ -139,17 +142,19 @@ public class DBApi {
 
     // true: an error occurred; false: updated successfully
     // the username cannot be changed, so we just overwrite the other fields
-    public bool Update(Users user) {
-        if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"IN PROCESS: updating the element {user.getUsername()}\"");
+    // PLEASE add singular quotation marks if a string
+    public bool UpdateByField(BaseDBModel element, FieldsDB fieldName, String value) {
+        if (DEBUG) Console.WriteLine($"\t{DBName} DataBase:\t\"IN PROCESS: updating the element {element.getUsername()}\"");
         Boolean errors = false; // no errors yet
 	    // open the connection
         using (var connection = new MySqlConnection(MSQLConnectionString)) {
+            DBInfo dBInfo = new DBInfo();
             connection.Open();
             var command = connection.CreateCommand();
-            command.CommandText = $"UPDATE {DBName} SET Status = {(int)user.getStatus()}, Role = {(int)user.getRole()}, GroupChatID = {user.getGroupChatID()} WHERE ChatID = {user.getChatID()}";
+            command.CommandText = $"UPDATE {DBName} {dBInfo.elementUpdateString(element)} WHERE {fieldName.ToString()} = {value}";
             command.ExecuteNonQuery();
         }
-        if (DEBUG && !errors) Console.WriteLine($"\t{DBName} DataBase\t\"RESULT: the {DBName} {user.getUsername()} has been updated successfully\"");
+        if (DEBUG && !errors) Console.WriteLine($"\t{DBName} DataBase\t\"RESULT: the {DBName} {element.getUsername()} has been updated successfully\"");
         return errors;
     }
 

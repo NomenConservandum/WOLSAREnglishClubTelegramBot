@@ -9,7 +9,7 @@ public class RegistrationChoiceService {
     public void StartService (
         Update update,
         String usernameTemp, String msgTextTemp, long chatIdTemp,
-        Commands commands, DBApi DB
+        Commands commands, DBApi RegistrationFormsDB, DBApi UsersDB
     ) {
         if (msgTextTemp.IndexOf('|') == -1) {
             commands.sendMsg(
@@ -28,44 +28,44 @@ public class RegistrationChoiceService {
         switch (choice) {
             case "PARTICIPANT": {
                 // should also add a registration form with the status: awaiting age choice
-                if (DB.Update(new Users(chatIdTemp, usernameTemp, Statuses.ARCCustomer, Roles.NONE, 0))) // The users status is changed
+                if (UsersDB.UpdateByField(
+                    new Users(chatIdTemp, usernameTemp, Statuses.ARCCustomer, Roles.NONE, 0), FieldsDB.Username, '\'' + usernameTemp + '\'')) // The users status is changed
                     return;
-
+                if (RegistrationFormsDB.Add(new FillOutFormParticipants(usernameTemp, Genders.Male, 0, 0, Formats.Offline, proficiencyLevels.zero, "", "", 0, false, 0, "", RegistrationStatuses.AwaitingRoleChoice)))
+                    return;
                 // this mode won't be used anymore
-                // sends commands that will be available only in the next mode: 'ARCCustomer'
                 var inlineKeyboard = new InlineKeyboardMarkup(
                     new List<InlineKeyboardButton[]>() {
                         new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Мужской", "1;MALE|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("Женский", "1;FEMALE|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("Начать регистрацию", "NOTHING|" + messageID),
                         },
                     }
                 );
                 commands.updateInlineMessage(
                     chatIdTemp,
                     int.Parse(messageID),
-                    "1 / ... \nТвой пол:",
+                    "Начнём же регистрацию?",
                     inlineKeyboard
                 );
                 break;
             };
             case "MINISTER": {
-                if (DB.Update(new Users(chatIdTemp, usernameTemp, Statuses.ARCMinister, Roles.NONE, 0))) // The users status is changed
+                if (UsersDB.UpdateByField(new Users(chatIdTemp, usernameTemp, Statuses.ARCMinister, Roles.NONE, 0), FieldsDB.Username, usernameTemp)) // The users status is changed
                     return;
+                // Add them to a list
                 // this mode won't be used anymore
                 // sends commands that will be available only in the next mode: 'ARCMinister'
                 var inlineKeyboard = new InlineKeyboardMarkup(
                     new List<InlineKeyboardButton[]>() {
                         new InlineKeyboardButton[] {
-                            InlineKeyboardButton.WithCallbackData("Мужской", "1;MALE|" + messageID),
-                            InlineKeyboardButton.WithCallbackData("Женский", "1;FEMALE|" + messageID),
+                            InlineKeyboardButton.WithCallbackData("Начать регистрацию", "NOTHING|" + messageID),
                         },
                     }
                 );
                 commands.updateInlineMessage(
                     chatIdTemp,
                     int.Parse(messageID),
-                    "1 / ... \nТвой пол:",
+                    "Начнём же регистрацию?",
                     inlineKeyboard
                 );
                 break;
