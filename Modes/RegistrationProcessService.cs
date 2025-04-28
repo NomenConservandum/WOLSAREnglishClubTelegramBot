@@ -39,7 +39,8 @@ public class RegistrationProcessService {
             );
 			return;
         }
-        if (msgTextTemp.IndexOf('|') == -1 && form.stage != RegistrationStatuses.AwaitingConductorResponse) {
+        if (msgTextTemp.IndexOf('|') == -1 && form.stage != RegistrationStatuses.AwaitingConductorResponse && form.stage != RegistrationStatuses.AwaitingInterestsResponse)
+        {
             commands.sendMsg(
                 chatIdTemp,
                 """
@@ -229,8 +230,17 @@ public class RegistrationProcessService {
 				commands.deleteMessage(chatIdTemp, update?.Message?.Id ?? 1);
 				break;
 			}
+            case RegistrationStatuses.AwaitingInterestsResponse: {
+                form.stage = RegistrationStatuses.AwaitingInterestsChoice;
+                form.otherInterests = msgTextTemp;
+                if (RegistrationFormsDB.UpdateByField(form, FieldsDB.Username, '\'' + usernameTemp + '\''))
+                    return;
+                commands.deleteMessage(chatIdTemp, update?.Message?.Id ?? 1);
+                break;
+            }
+            case RegistrationStatuses.InterestsChoice:
             case RegistrationStatuses.AwaitingConductorChoice: {
-				if (list[0].IndexOf(':') != -1) { // the user has chosen 'other' option
+				if (list[0].IndexOf(':') != -1 && form.stage != RegistrationStatuses.InterestsChoice) { // the user has chosen 'other' option
 
 					var msg = commands.sendMsg(
 						chatIdTemp,
@@ -247,13 +257,39 @@ public class RegistrationProcessService {
 						return;
 					break;
 				}
-				commands.deleteMessage(chatIdTemp, Int32.Parse(list[0]));
-				// TODO: make it a proper mode. The command above will also try to delete the message with ID equal to mask, which is cringe
-				form.stage = RegistrationStatuses.InterestsChoice;
-				if (RegistrationFormsDB.UpdateByField(form, FieldsDB.Username, '\'' + usernameTemp + '\''))
-						return;
+				if (form.stage != RegistrationStatuses.InterestsChoice) commands.deleteMessage(chatIdTemp, Int32.Parse(list[0]));
+                maskManipulation masks = new maskManipulation();
 
-				maskManipulation masks = new maskManipulation();
+                if (form.stage == RegistrationStatuses.InterestsChoice)
+					form.interestsMask = Int32.Parse(list[0]);
+                if (RegistrationFormsDB.UpdateByField(form, FieldsDB.Username, '\'' + usernameTemp + '\''))
+                    return;
+
+				short numberOfOptions = 7, chosenMask = (short)form.interestsMask;
+                if (masks.isChosen(chosenMask, 7)) // next question
+					form.stage = RegistrationStatuses.AwaitingInterestsChoice;
+
+				if (masks.isChosen(chosenMask, 6)) { // 'other' option is chosen
+                    var msg = commands.sendMsg(
+                        chatIdTemp,
+                        "Напиши свой вариант (Формат сообщения: не более 20 символов)"
+                    );
+                    commands.updateInlineMessage(
+                        chatIdTemp,
+                        int.Parse(messageID),
+                        "Продолжить?",
+                        new InlineKeyboardMarkup(new List<InlineKeyboardButton[]>() { new InlineKeyboardButton[] { InlineKeyboardButton.WithCallbackData("Да!", msg.Id.ToString() + '|' + messageID) } })
+                    );
+                    form.stage = RegistrationStatuses.AwaitingInterestsResponse;
+                    if (RegistrationFormsDB.UpdateByField(form, FieldsDB.Username, '\'' + usernameTemp + '\''))
+                        return;
+                    break;
+                }
+
+                form.stage = RegistrationStatuses.InterestsChoice;
+                if (RegistrationFormsDB.UpdateByField(form, FieldsDB.Username, '\'' + usernameTemp + '\''))
+						return;
+				
 				String msgText = "5 / ... \nЧто хочешь видеть на встречах клуба?";
 				// the first one is the visible text, the second - its code
 				String[][] options = new String[][] {
@@ -266,7 +302,6 @@ public class RegistrationProcessService {
 					["Свой вариант", "OTHER"], // потенциальное решение: закэшировать весь код и отправить его в следующем сообщении бота, дождаться ответа юзера и после удалить оба сообщения, декэшировать и вернуть выбор
 					["Следующий вопрос", "NEXT"]
 				};
-				short numberOfOptions = 7, chosenMask = (short)form.interestsMask;
 				if (chosenMask != 0) {
 					numberOfOptions = 8; // now we include the 'next question' button
 					msgText += "\nТвой выбор: ";
@@ -309,14 +344,12 @@ public class RegistrationProcessService {
 				);
 				break;
 			}
-			case RegistrationStatuses.InterestsChoice: {
-				break;
-			}
 			case RegistrationStatuses.AwaitingInterestsChoice: { // now the user is choosing time
-					// NOTE: make a module that operates just the same
-					// as the code for the personal interests but has
-					// time stamps, 'inconvenient' and 'the next day
-					// of the week' buttons.
+																 // NOTE: make a module that operates just the same
+																 // as the code for the personal interests but has
+																 // time stamps, 'inconvenient' and 'the next day
+																 // of the week' buttons.
+				Console.WriteLine("Nothing here yet");
 					/*
 				String msgText = "6 / ... \nВ какие дни недели тебе бы хотелось посещать клуб?";
 
